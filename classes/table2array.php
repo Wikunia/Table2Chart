@@ -78,13 +78,8 @@
 			$this->col_count = count($ths)-1;
 			for ($i = 1; $i <= $this->col_count; $i++) {
 				// delete some html in the <th>-Tag 
-				$ths[$i] = preg_replace('#<a (.*)>#Uis',"",$ths[$i]);
-				$ths[$i] = preg_replace("#<span style=\"display:none;?\"(.*)>(.*)</span>#Uis","",$ths[$i]); 
-				$ths[$i] = preg_replace("#<sup(.*)>(.*)</sup>#Uis","",$ths[$i]); 
-				$ths[$i] = preg_replace("#<sub(.*)>(.*)</sup>#Uis","",$ths[$i]); 
-				$ths[$i] = str_replace('</a>',"",$ths[$i]);
-				$ths[$i] = str_replace('<br />',"",$ths[$i]);
-				$ths[$i] = str_replace("\n","",$ths[$i]);
+				$ths[$i] = $this->readable_html($ths[$i]);
+				
 				$result[] = trim(utf8_decode(substr($ths[$i],strpos($ths[$i],">")+1)));
 			}
 			// if table has a two-column based table (year,inhabitans),(year,inhabitans) create unique titles (delete redundant titles)
@@ -151,27 +146,8 @@
 									
 									// delete some html in the columns here
 									$col = substr($col,strpos($col,">")+1);
-									$col = preg_replace("#<span (.*)style=\"display:none;?\"(.*)>(.*)</span>#Uis","",$col); 
 									
-									$col = preg_replace("#<sup(.*)>(.*)<\/sup>#Uis","",$col); 
-									$col = str_replace('<small>','',$col);
-									$col = str_replace('</small>','',$col);
-									$col = preg_replace("#<span (.*)>#Uis","",$col); 
-									$col = str_replace('</span>','',$col);
-									$col = preg_replace("#<img (.*)>#Uis","",$col); 
-									$col = str_replace('&#160;','',$col);
-									$col = str_replace('</td>','',$col);
-									$col = str_replace('</tr>','',$col);
-									$col = preg_replace("#<table (.*)>#Uis","",$col); 
-									$col = str_replace('</table>','',$col);
-									$col = str_replace('<hr />','',$col);
-									$col = str_replace("\n","",$col); 
-									$col = preg_replace("#<a (.*)>#Uis","",$col); 
-									$col = str_replace("</a>","",$col); 
-									$col = str_replace("<b>","",$col); 
-									$col = str_replace("</b>","",$col); 
-									
-									
+									$col = $this->readable_html($col);
 									
 									$col = utf8_decode($col);
 									
@@ -403,6 +379,19 @@
 				}
 			}
 			return $return;
+		}
+		
+		
+		function readable_html($in) {
+			$in = preg_replace('#<[a-zA-Z]{1,5} (.*)style="(.*)display:none(.*)"></[a-zA-Z]{1,5}>#Uis',"",$in);
+			$in = preg_replace('#<[a-zA-Z]{1,5}>#Uis',"",$in);
+			$in = preg_replace('#</[a-zA-Z]{1,5}>#Uis',"",$in);
+			$in = preg_replace('#<[a-zA-Z]{1,5} (.*)>#Uis',"",$in);
+			
+			
+			$in = str_replace('&#160;','',$in);
+			$out = str_replace("\n","",$in); 
+			return $out;
 		}
 	}
 	
