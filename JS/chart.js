@@ -1190,13 +1190,13 @@ window.Chart = function(lang,context, options){
 		animationLoop(config,drawScale,drawLines,ctx);		
 		
 		// YYYY in DD.MM.YYYY || MM.YYYY in DD.MM.YYYY
-		if (data.labels[0].match(/^((0?[1-9])|10|11|12)\.(1|2)[0-9]{3}$/)) {
+		if (data.labels[0].toString().match(/^((0?[1-9])|10|11|12)\.(1|2)[0-9]{3}$/)) {
 			for (var i = 0; i < data.labels.length; i++) {
 				data.labels[i] = '01.'+data.labels[i];
 			}
 		}
 		
-		if (data.labels[0].match(/^(1|2)[0-9]{3}$/)) {
+		if (data.labels[0].toString().match(/^(1|2)[0-9]{3}$/)) {
 			for (var i = 0; i < data.labels.length; i++) {
 				data.labels[i] = '01.01.'+data.labels[i];
 			}
@@ -1204,7 +1204,7 @@ window.Chart = function(lang,context, options){
 		
 		// Test if all labels are dates
 		for (var i = 0; i < data.labels.length; i++) {
-			myDate=data.labels[i].split(".");
+			myDate=data.labels[i].toString().split(".");
 			var test_timestamp = new Date(myDate[1]+"/"+myDate[0]+"/"+myDate[2]).getTime();
 			if (isNaN(test_timestamp)) {
 				LabelIsDate = false;
@@ -1368,10 +1368,10 @@ window.Chart = function(lang,context, options){
 				}
 			}
 			
-			
+			var xLabelDis = 0;
 			xAxisLabel = new Array(); 
 			if (LabelIsDate === true) {
-				for (var i = parseInt(data.labels[0].split(".")[2]); i <= parseInt(data.labels[data.labels.length-1].split(".")[2]); i++) {
+				for (var i = parseInt(data.labels[0].toString().split(".")[2]); i <= parseInt(data.labels[data.labels.length-1].toString().split(".")[2]); i++) {
 					if (i%dis_years == 0) {
 						xAxisLabel.push(i);
 					}
@@ -1408,10 +1408,12 @@ window.Chart = function(lang,context, options){
 					disLabelYAxis = -1;
 				
 					
+					var round = get_round_dec(xLabelDisFactor);
+					
 					var mod = 0;
 					while (xAxisLabel.length == 0) {
 						for (var i=0; i<data.labels.length; i++){ 
-							if (data.labels[i]%(xLabelDis*xLabelDisFactor) === mod) {
+							if ((data.labels[i]*Math.pow(10,round))%((xLabelDis*xLabelDisFactor)*Math.pow(10, round)) === mod) {
 								xAxisLabel.push(data.labels[i]);
 								if (disLabelYAxis == -1) {
 									disLabelYAxis = i;
@@ -1515,11 +1517,14 @@ window.Chart = function(lang,context, options){
 			
 			function is_like_rank() {
 				var distance = data.labels[1]-data.labels[0];
+				var round = get_round_dec(distance);
+	
 				var like_rank = distance;
 				for (var i=2; i<data.labels.length; i++){ 
-						if (data.labels[i]-data.labels[i-1] != distance) {
+						if (round_dec(data.labels[i]-data.labels[i-1],round) != distance) {
 							like_rank = false;
 							break;
+							
 						}
 					}
 				return like_rank;
@@ -2535,4 +2540,23 @@ window.Chart = function(lang,context, options){
 	function log10(val) {
 		return Math.log(val) / Math.LN10;
 	}
+	
+	function get_round_dec(val) {
+		var ret = Math.floor(Math.log(val) / Math.LN10);
+		if (ret != Math.abs(ret)) {
+			return Math.abs(ret);
+		} else {
+			return 0;
+		}
+	}
+	
+	function round_dec(x, n) {
+	  if (n < 0 || n > 14) return false;
+	  var e = Math.pow(10, n);
+	  var k = (Math.round(x * e) / e).toString();
+	  if (k.indexOf('.') == -1) k += '.';
+	  k += e.toString().substring(1);
+	  return k.substring(0, k.indexOf('.') + n+1);
+	}
+	
 }
