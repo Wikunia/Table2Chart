@@ -24,7 +24,7 @@
 	<hr>
 	<section id="examples">
 		<article id="lineChart" >
-			<div class="left">
+			<div class="left"> 
 				<h2>Line charts</h2>
 				<p>Tables with a date based column are interpreted as line charts.</p><br>
 				<b>Required</b>
