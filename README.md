@@ -1,7 +1,7 @@
 Table2Chart
 =======
 *Simple visualize tables* 
-[github.wikunia.de](http://github.wikunia.de)
+[github.wikunia.de/Table2Chart](http://github.wikunia.de/Table2Chart)
 
 Table => Chart
 ======

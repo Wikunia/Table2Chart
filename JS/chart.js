@@ -333,7 +333,7 @@ window.Chart = function(lang,context, options){
 		}
 	}
 
-	if(window.Touch) {
+	 if (is_touch_device()) {
 		context.canvas.ontouchstart = function(e) {
 			e.clientX = e.targetTouches[0].clientX;
 			e.clientY = e.targetTouches[0].clientY;
@@ -349,6 +349,12 @@ window.Chart = function(lang,context, options){
 			tooltipEventHandler(e);
 		}
 	}
+	
+  function is_touch_device() {
+		return !!('ontouchstart' in window) // works on most browsers 
+        || !!('onmsgesturechange' in window); // works on ie10
+  };   
+
 	context.canvas.onmouseout = function(e) {
 		if(chart.savedState != null) {
 			context.putImageData(chart.savedState,0,0);
