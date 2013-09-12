@@ -2516,32 +2516,9 @@ window.Chart = function(lang,context, options){
 	
 	
 	function thousand_separator(input) {
-				var number = input.split('.');
-				num = number[0];
-				num = num.split("").reverse().join("");
-				var numpoint = '';
-				for (var i = 0; i < num.length; i++) {
-					numpoint += num.substr(i,1);	
-					if (((i+1)%3 == 0) && i != num.length-1)  {
-						if (lang == "de") {
-							numpoint += '.';
-						}
-						if (lang == "en") {
-							numpoint += ',';
-						}
-					}						
-				}
-				num = numpoint.split("").reverse().join("");
-				if (number[1] != undefined) {
-					if (lang == "de") {
-						num = num+','+number[1];
-					}
-					if (lang == "en") {
-						num = num+'.'+number[1];
-					}
-				}
-			return num;
+		return parseFloat(input).toLocaleString(lang);
 	}
+	
 	
 	function log10(val) {
 		return Math.log(val) / Math.LN10;
