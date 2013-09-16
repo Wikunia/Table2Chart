@@ -8,6 +8,8 @@
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 		<script type="text/javascript" src="JS/chart.js"></script>
 		<script type="text/javascript" src="JS/index.js"></script>
+		<script type="text/javascript" src="JS/filesaver.js"></script>
+		<script type="text/javascript" src="JS/canvas-toBlob.js"></script>
 		<link rel="stylesheet" href="CSS/styles.css"/>
 	</head>
 	<body>
@@ -45,7 +47,7 @@
 				</div>
 			</div>
 			<div class="clearleft">
-			<br><div id="vis_line" class="vis_it">Visualize it!</div>
+			<br><div id="vis_line" class="button vis_it">Visualize it!</div><div id="save_line" class="button save">Save as png</div><div class="clearleft"></div>
 		</article>
 
 		<hr>
@@ -72,7 +74,7 @@
 				</div>			
 			</div>
 			<div class="clearleft">
-			<br><div id="vis_bar" class="vis_it">Visualize it!</div>	
+			<br><div id="vis_bar" class="button vis_it">Visualize it!</div><div id="save_bar" class="button save">Save as png</div><div class="clearleft"></div>	
 		</article>
 	
 		<hr>
@@ -99,7 +101,7 @@
 				</div>			
 			</div>
 			<div class="clearleft">
-			<br><div id="vis_stackedBar" class="vis_it">Visualize it!</div>	
+			<br><div id="vis_stackedBar" class="button vis_it">Visualize it!</div><div id="save_stackedBar" class="button save">Save as png</div><div class="clearleft"></div>			
 		</article>
 			
 		<hr>
@@ -123,7 +125,7 @@
 				</div>			
 			</div>
 			<div class="clearleft">
-			<br><div id="vis_pie" class="vis_it">Visualize it!</div>	
+			<br><div id="vis_pie" class="button vis_it">Visualize it!</div><div id="save_bar" class="button save">Save as png</div><div class="clearleft"></div>
 		</article>
 		
 		

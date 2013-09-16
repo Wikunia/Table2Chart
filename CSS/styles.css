@@ -60,7 +60,7 @@ th, td {
 	display:none;
 }
 
-.vis_it {
+.button {
 	background-color:#fb0;
 	color: white;
 	border-radius: 3px;
@@ -70,6 +70,16 @@ th, td {
 	cursor:pointer;
 }
 
+.vis_it {
+	float:left;
+}
+
+.save {
+	display:none;
+	margin-left:15px;
+	width:100px;
+	float:left;
+}
 
 .left {
 	float:left;

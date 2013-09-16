@@ -86,6 +86,7 @@ $(document).ready(function(){
 				scrollTop: $("#"+id+"Chart").offset().top
 				}, 500);				
 			});
+			$("#save_"+id).css("display","block");
 			$("#vis_"+id).html('Show table');
 		} else {
 			$('html, body').animate({
@@ -94,10 +95,21 @@ $(document).ready(function(){
 			$("#"+id+"ChartCanvas").css("display","none");	
 			$("#"+id+"Legend").css("display","none");			
 			$("#"+id+"Table").css("display","block");
+			$("#save_"+id).css("display","none");
 			$("#vis_"+id).html('Visualize it!');	
 		}
 
 	});
+	
+	// save chart to png
+	$('.save').live('click', function() {
+		var type = $(this).attr("id").substr(5);
+		var canvas = document.getElementById(type+"ChartCanvas");
+		canvas.toBlob(function(blob) {
+			saveAs(blob, type+"_chart.png");
+		});
+	});
+	
 	
 	function legend(parent, data) {
 		var datas = data.hasOwnProperty('datasets') ? data.datasets : data;

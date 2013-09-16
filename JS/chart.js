@@ -2519,7 +2519,6 @@ window.Chart = function(lang,context, options){
 		return parseFloat(input).toLocaleString(lang);
 	}
 	
-	
 	function log10(val) {
 		return Math.log(val) / Math.LN10;
 	}
