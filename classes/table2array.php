@@ -48,6 +48,16 @@
 		public $array_structure;
 		public $column_structure;
 		
+		//constants for value_types
+		const TYPE_STRING = 	0;
+		const TYPE_NUMBER = 	1;
+		const TYPE_PERCENTAGE = 2;
+		const TYPE_SUM_ALL = 	3;
+		const TYPE_YEAR = 		4;
+		const TYPE_DATE = 		5;
+		const TYPE_CHANGE = 	6;
+		const TYPE_RANK = 		7;
+	
 		
 		/*  main function creates all arrays */
 		
@@ -237,7 +247,7 @@
 			// date => 5
 			if ((($this->lang == "de") and (preg_match('#\d{1,2}\.[ ]?(Januar |Februar |März |April |Mai |Juni |Juli |August |September |Oktober |November |Dezember |((0?[1-9])|10|11|12)\.)[1-2]\d{3}#',$this->row_array[$row][$col]))) or
 				(($this->lang == "en") and (preg_match('#\d{1,2}( January | February | March | April | May | June | July | August | September | Oktober | November | December |\.((0?[1-9])|10|11|12)\.)[1-2]\d{3}#',$this->row_array[$row][$col])))) {
-				$return =  5;
+				$return = self::TYPE_DATE;
 			}
 			
 			if (!isset($return)) {
@@ -247,10 +257,10 @@
 					{
 						$this->row_array[$row][$col] = $percent;
 						if ((round($percent,2) - round(100,2)) == 0) {
-							$return = 3; // sum of all
+							$return = self::TYPE_SUM_ALL; 
 						}
 						else {
-							$return = 2; // percentage
+							$return = self::TYPE_PERCENTAGE; 
 						}
 					}			
 				}
@@ -259,13 +269,13 @@
 					if (is_numeric($this->row_array[$row][$col])) {
 						if ((strpos(strtolower($this->column_titles[$col_nr]),"rank") !== false) or (strpos($this->column_titles[$col_nr],"Rang") !== false) or (strpos($this->column_titles[$col_nr],"Nr.") !== false) or (strpos(strtolower($this->column_titles[$col_nr]),"no.") !== false))
 						{
-							$return = 7; // rank
+							$return = self::TYPE_RANK; 
 						}
 						else 
 						{
 						if (($this->row_array[$row][$col] >= 1000) and ($this->row_array[$row][$col] <= date("Y")) and (strlen($this->row_array[$row][$col]) == 4)) 
 						{
-							$return = 4; // year
+							$return = self::TYPE_YEAR; 
 						}
 						else
 						{
@@ -299,26 +309,26 @@
 								
 							
 								if (abs($sum-$this->row_array[$row][$col]) <= $max_dif) { 
-										$return = 3; // sum of all
+										$return = self::TYPE_SUM_ALL;
 									}
 							}
 							if (!isset($return)) {
 								if (strpos($this->column_titles[$col_nr],"%") !== false)
 								{
 									if ((strpos($this->column_titles[$col_nr],"Veränderung") !== false) or (strpos(strtolower($this->column_titles[$col_nr]),"change") !== false)) {
-										$return = 6; // change (+|-)
+										$return = self::TYPE_CHANGE; // change (+|-)
 									} else {
-										$return = 2; // percentage
+										$return = self::TYPE_PERCENTAGE;
 									}
 								} else {
-									$return = 1; // number
-								}
+									$return = self::TYPE_NUMBER; 
+									}
 							}
 						}
 					 }
 					}
 					else {
-						$return = 0; // string
+						$return = self::TYPE_STRING; 
 					}
 				}
 			}
@@ -333,13 +343,13 @@
 				$value = array();
 				$column_structure = $this->array_structure[$this->column_titles[$i]][0];
 				for ($j = 1; $j < $this->row_count-1; $j++) {
-					if ((($j == $this->row_count-2) and ($this->array_structure[$this->column_titles[$i]][$j] != 3)) or ($j != $this->row_count-2)) { 
+					if ((($j == $this->row_count-2) and ($this->array_structure[$this->column_titles[$i]][$j] != table2array::TYPE_SUM_ALL)) or ($j != $this->row_count-2)) { 
 						if ($this->array_structure[$this->column_titles[$i]][$j] != $column_structure) {
 							// year can be interpreted as a normal number
-							if ((($column_structure == 4) and ($this->array_structure[$this->column_titles[$i]][$j] == 1)) or (($column_structure == 1) and ($this->array_structure[$this->column_titles[$i]][$j] == 4))) {
-								if ($column_structure == 4) { $this->array_structure[$this->column_titles[$i]][0] = 1; }
-								if ($column_structure == 1) { $this->array_structure[$this->column_titles[$i]][$j] = 1; }
-								$column_structure = 1;	
+							if ((($column_structure == self::TYPE_YEAR) and ($this->array_structure[$this->column_titles[$i]][$j] == self::TYPE_NUMBER)) or (($column_structure == self::TYPE_NUMBER) and ($this->array_structure[$this->column_titles[$i]][$j] == self::TYPE_YEAR))) {
+								if ($column_structure == self::TYPE_YEAR) { $this->array_structure[$this->column_titles[$i]][0] = self::TYPE_NUMBER; }
+								if ($column_structure == self::TYPE_NUMBER) { $this->array_structure[$this->column_titles[$i]][$j] = self::TYPE_NUMBER; }
+								$column_structure = table2array::TYPE_NUMBER;	
 							}
 							else {
 								$column_structure = "undefined";
@@ -350,7 +360,7 @@
 					
 
 					
-					if ($column_structure == 0) { // string
+					if ($column_structure == table2array::TYPE_STRING) { // string
 						if (!in_array($this->row_array[$j][$this->column_titles[$i]],$value)) {
 							$value[$j] = $this->row_array[$j][$this->column_titles[$i]];
 						}

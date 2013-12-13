@@ -19,14 +19,15 @@
 */
 	
 	
-class chart extends table2array {
-
+class chart extends table2array {		
+		
 		private $json;
 		
 		private $value_columns;
 		private $label_columns;
 		private $nut_label_columns;
 	
+		
 	function __construct($table,$lang) {
 		// get all arrays of the table2array class
 		$this->get_array($table,$lang);
@@ -47,10 +48,10 @@ class chart extends table2array {
 		$n = 0;
 		for ($i = 0; $i < $this->col_count; $i++) {
 			if ($this->column_structure[$this->column_titles[$i]] !== "undefined") {					
-				if (($this->column_structure[$this->column_titles[$i]] == 1) or ($this->column_structure[$this->column_titles[$i]] == 2)) { // value number or percentage
+				if (($this->column_structure[$this->column_titles[$i]] == table2array::TYPE_NUMBER) or ($this->column_structure[$this->column_titles[$i]] == table2array::TYPE_PERCENTAGE)) { // value number or percentage
 					$this->value_columns[] = $this->column_titles[$i];
 				}
-				if (($this->column_structure[$this->column_titles[$i]] === 0) or ($this->column_structure[$this->column_titles[$i]] == 4) or ($this->column_structure[$this->column_titles[$i]] == 5)) { // label
+				if (($this->column_structure[$this->column_titles[$i]] === table2array::TYPE_STRING) or ($this->column_structure[$this->column_titles[$i]] == table2array::TYPE_YEAR) or ($this->column_structure[$this->column_titles[$i]] == table2array::TYPE_DATE)) { // label
 					$this->label_columns[] = $this->column_titles[$i];
 				}
 				if ($this->column_structure[$this->column_titles[$i]] === 'not_unique_text') {
@@ -63,7 +64,7 @@ class chart extends table2array {
 		// -> delete this row (row_array)
 		$sumall = true;
 		for ($i = 0; $i < count($this->value_columns); $i++) {			
-			if ($this->array_structure[$this->value_columns[$i]][$this->row_count-2] != 3) {
+			if ($this->array_structure[$this->value_columns[$i]][$this->row_count-2] != table2array::TYPE_SUM_ALL) {
 				$sumall = false;
 			}
 		}
@@ -77,7 +78,7 @@ class chart extends table2array {
 		
 		if (count($this->value_columns) == 1) {
 			//percentage 
-			if ($this->column_structure[$this->value_columns[0]] == 2) {
+			if ($this->column_structure[$this->value_columns[0]] == table2array::TYPE_PERCENTAGE) {
 				$checksum = 0;
 				for ($y = 0; $y < $this->row_count-1; $y++) {
 					$checksum = $checksum + $this->row_array[$y][$this->value_columns[0]];
@@ -102,7 +103,7 @@ class chart extends table2array {
 			for ($i = 0; $i < count($this->value_columns); $i++) {
 				$checksum = $checksum + $this->column_structure[$this->value_columns[$i]];
 			}
-			if (($checksum/count($this->value_columns))==1) { // all normal numbers
+			if (($checksum/count($this->value_columns))==table2array::TYPE_NUMBER) { // all normal numbers
 				if (count($this->label_columns) == 1) { // only one label
 					if (($this->row_count <= 10) or (count($this->nut_label_columns) == 0)) {
 						$graph = $this->line_or_bar();
@@ -137,7 +138,7 @@ class chart extends table2array {
 			
 			
 			
-			if (($checksum/count($this->value_columns))==2) { // all percentage				
+			if (($checksum/count($this->value_columns))==table2array::TYPE_PERCENTAGE) { // all percentage				
 				// row based
 				$row_based_hundred = true;
 				for ($y = 0; $y < $this->row_count-1; $y++) {
@@ -171,12 +172,12 @@ class chart extends table2array {
 			}
 			
 			
-			// some values are percantage and some are normal numbers
-			if ((($checksum/count($this->value_columns))>1) and (($checksum/count($this->value_columns))<2)) {				
+			// some values are percantage (TYPE_PERCENTAGE := 2 & TYPE_NUMBER := 1) and some are normal numbers
+			if ((($checksum/count($this->value_columns))>table2array::TYPE_NUMBER) and (($checksum/count($this->value_columns))<table2array::TYPE_PERCENTAGE)) {				
 				$percentage_columns = array();
 				$number_columns = array();
 				for ($i = 0; $i < count($this->value_columns); $i++) {
-					if ($this->column_structure[$this->value_columns[$i]] == 2) {
+					if ($this->column_structure[$this->value_columns[$i]] == table2array::TYPE_PERCENTAGE) {
 						$percentage_columns[] = $this->value_columns[$i];
 					}
 					else {
@@ -186,7 +187,7 @@ class chart extends table2array {
 				
 				for ($i = 0; $i < count($this->label_columns); $i++)
 				{
-					if (($this->column_structure[$this->label_columns[$i]] == 4) or ($this->column_structure[$this->label_columns[$i]] == 5)) { // year or date
+					if (($this->column_structure[$this->label_columns[$i]] == table2array::TYPE_YEAR) or ($this->column_structure[$this->label_columns[$i]] == table2array::TYPE_DATE)) { // year or date
 						// line
 						$graph["type"] = "line";
 						$graph["label"] = $this->label_columns[$i];
@@ -262,7 +263,7 @@ class chart extends table2array {
 		$graph = array();
 		for ($i = 0; $i < count($this->label_columns); $i++)
 			{
-				if (($this->column_structure[$this->label_columns[$i]] == 4) or ($this->column_structure[$this->label_columns[$i]] == 5)) { // year or date
+				if (($this->column_structure[$this->label_columns[$i]] == table2array::TYPE_YEAR) or ($this->column_structure[$this->label_columns[$i]] == table2array::TYPE_DATE)) { // year or date
 					// line
 					$graph["type"] = "line";
 					$graph["label"] = $this->label_columns[$i];
@@ -501,7 +502,7 @@ class chart extends table2array {
 	// replace 16 March 1932 to 16.03.1932 -> !important for chart.js	
 	function format_date() {
 		for ($i = 0; $i < $this->col_count; $i++) {
-			if ($this->column_structure[$this->column_titles[$i]] == 5) {
+			if ($this->column_structure[$this->column_titles[$i]] == table2array::TYPE_DATE) {
 				for ($j = 0; $j < $this->row_count-1; $j++) {
 					if ($this->lang == "de") {preg_match('#\d{1,2}\.[ ]?(Januar |Februar |MÃ¤rz |April |Mai |Juni |Juli |August |September |Oktober |November |Dezember |((0?[1-9])|10|11|12)\.)[1-2]\d{3}#',$this->row_array[$j][$this->column_titles[$i]], $matches);}
 					if ($this->lang == "en") {preg_match('#\d{1,2}( January | February | March | April | May | June | July | August | September | Oktober | November | December |\.((0?[1-9])|10|11|12)\.)[1-2]\d{3}#',$this->row_array[$j][$this->column_titles[$i]], $matches);}
