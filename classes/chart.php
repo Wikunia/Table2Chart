@@ -12,7 +12,9 @@
 *		list($type,$data) = $chart->create_graph(); // $type is for example 'line' and data is the data for chart.js 
 *
 * If you want to generate a chart without an analyse, you can use
-*		list($type,$data) = $chart->create_json_line($label,$values); // $values is an array 
+*		list($type,$data) = $chart->create_json_line($label,$values); 
+*                                                    $label = name of label column
+*                                                    $values = name of value column(s) // is an array so $values[0],$values[1]
 * 
 * author: Ole Kröger
 * license: MIT license
@@ -247,7 +249,7 @@ class chart extends table2array {
 				return array('line',$this->create_json_line($graph["label"],$graph["value"])); 
 				break;
 			case "pie":
-				return array('pie',$this->create_json_pie($graph["label"],$graph["value"])); // array in value not possible
+				return array('pie',$this->create_json_pie($graph["label"],$graph["value"])); // value can't be an array
 				break;
 			case "bar":
 				return array('bar',$this->create_json_bar($graph["label"],$graph["value"],$graph["special"])); 

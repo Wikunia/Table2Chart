@@ -68,8 +68,7 @@
 			$this->column_titles = $this->get_column_titles();
 			$this->get_structured_array();
 			$this->array_structure = $this->get_structure();
-			$this->column_structure = $this->get_column_structure();
-			
+			$this->column_structure = $this->get_column_structure();	
 		}
 		
 		/* Creating the column array */
@@ -256,6 +255,7 @@
 					if (is_numeric($percent))
 					{
 						$this->row_array[$row][$col] = $percent;
+						// Check if the last entry in a percentage column is 100 (sum of all)
 						if ((round($percent,2) - round(100,2)) == 0) {
 							$return = self::TYPE_SUM_ALL; 
 						}
@@ -273,18 +273,21 @@
 						}
 						else 
 						{
-						if (($this->row_array[$row][$col] >= 1000) and ($this->row_array[$row][$col] <= date("Y")) and (strlen($this->row_array[$row][$col]) == 4)) 
-						{
-							$return = self::TYPE_YEAR; 
-						}
-						else
-						{
+							// a year can be between 1000 and 2114 (current year + 100)
+							if (($this->row_array[$row][$col] >= 1000) and ($this->row_array[$row][$col] <= date("Y")+100) and (strlen($this->row_array[$row][$col]) == 4)) 
+							{
+								$return = self::TYPE_YEAR; 
+							}
+							else
+							{
 							if ($row == $this->row_count-2) { // last row
+								// Compute the sum of all entries to the last in a column
 								$sum = 0;
 								for ($i = 0; $i < $row; $i++) {
 									$sum = $sum + $this->row_array[$i][$col];
 								}
 								
+								// the maximum difference between the sum and the last entry is dependent on the amount of the sum
 								if (($this->row_count-2) >= 3) {
 									switch ($sum) {
 										case ($sum <= 10):
@@ -341,9 +344,13 @@
 			
 			for ($i = 0; $i < $this->col_count; $i++) {
 				$value = array();
+				//column structure = structure of first entry
 				$column_structure = $this->array_structure[$this->column_titles[$i]][0];
+				$value[0] = $this->row_array[0][$this->column_titles[$i]];
 				for ($j = 1; $j < $this->row_count-1; $j++) {
+					// if (last entry and not sum of all) or not last entry
 					if ((($j == $this->row_count-2) and ($this->array_structure[$this->column_titles[$i]][$j] != table2array::TYPE_SUM_ALL)) or ($j != $this->row_count-2)) { 
+						// if type of entry != type of column
 						if ($this->array_structure[$this->column_titles[$i]][$j] != $column_structure) {
 							// year can be interpreted as a normal number
 							if ((($column_structure == self::TYPE_YEAR) and ($this->array_structure[$this->column_titles[$i]][$j] == self::TYPE_NUMBER)) or (($column_structure == self::TYPE_NUMBER) and ($this->array_structure[$this->column_titles[$i]][$j] == self::TYPE_YEAR))) {
@@ -360,11 +367,13 @@
 					
 
 					
-					if ($column_structure == table2array::TYPE_STRING) { // string
+					if ($column_structure == table2array::TYPE_STRING) { 
+						// Check if there are two entries with same data
 						if (!in_array($this->row_array[$j][$this->column_titles[$i]],$value)) {
 							$value[$j] = $this->row_array[$j][$this->column_titles[$i]];
 						}
 						else {
+							// Check if a entry for each row exists
 							if ($this->no_null($this->column_titles[$i])) {
 								$column_structure = "not_unique_text";
 							}
@@ -404,10 +413,3 @@
 			return $out;
 		}
 	}
-	
-	
-	
-	
-	
-
-?>
