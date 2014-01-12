@@ -74,7 +74,7 @@
 				</div>
 			</div>
 			<div class="clearleft">
-			<br><div id="vis_lineDoubleY" class="button vis_it">Visualize it!</div><div id="save_line" class="button save">Save as png</div><div class="clearleft"></div>
+			<br><div id="vis_lineDoubleY" class="button vis_it">Visualize it!</div><div id="save_lineDoubleY" class="button save">Save as png</div><div class="clearleft"></div>
 		</article>
 		
 		<hr>

@@ -569,7 +569,7 @@ window.Chart = function(lang,context, options){
 			datasetStroke : true,
 			datasetStrokeWidth : 2,
 			datasetFill : true,
-			animation :false,
+			animation :true,
 			animationSteps : 60,
 			animationEasing : "easeOutQuart",
 			onAnimationComplete : null
@@ -1904,11 +1904,7 @@ window.Chart = function(lang,context, options){
 					}
 					ctx.stroke();
 					if (thousand_separator(actual_calculatedScale.labels[j]) == 0) {
-						console.log(ctx.lineWidth);
-						console.log(ctx.strokeStyle);
 						ctx.beginPath();
-						console.log(yAxisPosX+','+(xAxisPosY-((j+1) * actual_scaleHop)));
-						console.log((yAxisPosX+xAxisLength+0.5)+','+(xAxisPosY - ((j+1) * actual_scaleHop)));
 						ctx.moveTo(yAxisPosX,xAxisPosY - ((j+1) * actual_scaleHop));
 						ctx.lineTo(yAxisPosX+xAxisLength+0.5,xAxisPosY - ((j+1) * actual_scaleHop));
 						ctx.stroke();

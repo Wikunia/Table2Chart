@@ -117,7 +117,6 @@ $(document).ready(function(){
 	
 	
 	function legend(type, data) {
-		console.log(data);
 		var parent = $("#"+type);
 		if (type == "lineDoubleYLegend") {
 			for (var i = 1; i <= 2; i++) {
