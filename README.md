@@ -2,7 +2,7 @@ Table2Chart
 =======
 *Simple visualize html tables automatically* 
 [github.wikunia.de/Table2Chart](http://github.wikunia.de/Table2Chart)
-Table2Chart generates line,bar,stacked bar and pie charts.
+Table2Chart generates line,lineDoubleY,bar,stacked bar and pie charts.
 
 Table => Chart
 ======

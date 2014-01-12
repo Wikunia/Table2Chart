@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<title>Table2Chart - Wikunia - GitHub</title>
 		<link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" />
-		<meta name="description" content="Open source tool which visualizes tables with Chart.js."/>
+		<meta name="description" content="Open source tool which visualizes html tables with Chart.js. Even the type of representation is determined automatically."/>
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 		<script type="text/javascript" src="JS/chart.js"></script>
 		<script type="text/javascript" src="JS/index.js"></script>
@@ -50,6 +50,33 @@
 			<br><div id="vis_line" class="button vis_it">Visualize it!</div><div id="save_line" class="button save">Save as png</div><div class="clearleft"></div>
 		</article>
 
+		<hr>
+		
+		<article id="lineDoubleYChart" >
+			<div class="left"> 
+				<h2>Line double y-axis charts</h2>
+				<p>Tables with a date based column and two value columns with different units are interpreted as line charts.</p><br>
+				<b>Required</b>
+				<ul>
+					<li>one date column</li>
+					<li>two value columns with different units</li>
+				</ul>
+				<div id="lineDoubleYLegend" class="legend">
+					
+				</div>
+			</div>
+			<div class="canvasWrapper">
+				<canvas id="lineDoubleYChartCanvas" class="chart" width="800" height="400"></canvas>
+				<div id="lineDoubleYTable" class="table">
+				<?php
+					include('tables/lineDoubleY.htm');
+				?>
+				</div>
+			</div>
+			<div class="clearleft">
+			<br><div id="vis_lineDoubleY" class="button vis_it">Visualize it!</div><div id="save_line" class="button save">Save as png</div><div class="clearleft"></div>
+		</article>
+		
 		<hr>
 		
 		<article id="barChart" >

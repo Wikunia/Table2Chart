@@ -35,18 +35,23 @@ $(document).ready(function(){
 					case "line": 
 						var ctx = $("#lineChartCanvas").get(0).getContext("2d");
 						var myChart = new Chart(lang,ctx).Line(json.data,{	datasetFill:false, bezierCurve : false}); 
-						if (value_column == "" && bool_show_all[type] === false) { legend($("#lineLegend"), json.data); }
+						if (value_column == "" && bool_show_all[type] === false) { legend("lineLegend", json.data); }
+						break;
+					case "lineDoubleY": 
+						var ctx = $("#lineDoubleYChartCanvas").get(0).getContext("2d");
+						var myChart = new Chart(lang,ctx).LineDoubleY(json.data,{	datasetFill:false, bezierCurve : false}); 
+						if (value_column == "" && bool_show_all[type] === false) { legend("lineDoubleYLegend", json.data); }
 						break;
 					case "bar": 
 						var ctx = $("#barChartCanvas").get(0).getContext("2d");
 						var myChart = new Chart(lang,ctx).Bar(json.data);
-						if (value_column == "" && bool_show_all[type] === false) { legend($("#barLegend"), json.data); }
+						if (value_column == "" && bool_show_all[type] === false) { legend("barLegend", json.data); }
 						break;
 					case "stackedbar": 
 						$("#stackedBarChartCanvas").css("display","block");
 						var ctx = $("#stackedBarChartCanvas").get(0).getContext("2d");
 						var myChart = new Chart(lang,ctx).StackedBar(json.data, { scaleOverride: true, scaleSteps: 10, scaleStepWidth: 10, scaleStartValue: 0}); 
-						if (value_column == "" && bool_show_all[type] === false) { legend($("#stackedBarLegend"), json.data); }
+						if (value_column == "" && bool_show_all[type] === false) { legend("stackedBarLegend", json.data); }
 						break;
 					default:
 						$("#"+type+"Legend").css("display","none");
@@ -111,19 +116,33 @@ $(document).ready(function(){
 	});
 	
 	
-	function legend(parent, data) {
-		var datas = data.hasOwnProperty('datasets') ? data.datasets : data;
+	function legend(type, data) {
+		console.log(data);
+		var parent = $("#"+type);
+		if (type == "lineDoubleYLegend") {
+			for (var i = 1; i <= 2; i++) {
+				var title = document.createElement('span');
+				title.className = 'title';
+				title.title = htmlDecode(eval("data.datasets_Y"+i)[0].title);
+				title.style.borderColor = eval("data.datasets_Y"+i)[0].hasOwnProperty('strokeColor') ? eval("data.datasets_Y"+i)[0].strokeColor : eval("data.datasets_Y"+i)[0].color;
+				parent.append(title);
 
-		datas.forEach(function(d) {
-			var title = document.createElement('span');
-			title.className = 'title';
-			title.title = d.title;
-			title.style.borderColor = d.hasOwnProperty('strokeColor') ? d.strokeColor : d.color;
-			parent.append(title);
+				var text = document.createTextNode(htmlDecode(eval("data.datasets_Y"+i)[0].title));
+				title.appendChild(text);
+			};
+		} else {
+			var datas = data.hasOwnProperty('datasets') ? data.datasets : data;
+			datas.forEach(function(d) {
+				var title = document.createElement('span');
+				title.className = 'title';
+				title.title = d.title;
+				title.style.borderColor = d.hasOwnProperty('strokeColor') ? d.strokeColor : d.color;
+				parent.append(title);
 
-			var text = document.createTextNode(d.title);
-			title.appendChild(text);
-		});
+				var text = document.createTextNode(d.title);
+				title.appendChild(text);
+			});
+		}
 	}
 	
 	$(".title").live("click", function(e) {
@@ -139,6 +158,18 @@ $(document).ready(function(){
 			});
 		}		
 	});
+	
+	
+	// http://stackoverflow.com/questions/1219860/html-encoding-in-javascript-jquery User: CMS
+	function htmlEncode(value){
+	  //create a in-memory div, set it's inner text(which jQuery automatically encodes)
+	  //then grab the encoded contents back out.  The div never exists on the page.
+	  return $('<div/>').text(value).html();
+	}
+	
+	function htmlDecode(value){
+	  return $('<div/>').html(value).text();
+	}
 	
 
 

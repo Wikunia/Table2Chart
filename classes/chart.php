@@ -49,14 +49,17 @@ class chart extends table2array {
 		$graph = array();
 		$n = 0;
 		for ($i = 0; $i < $this->col_count; $i++) {
-			if ($this->column_structure[$this->column_titles[$i]] !== "undefined") {					
-				if (($this->column_structure[$this->column_titles[$i]] == table2array::TYPE_NUMBER) or ($this->column_structure[$this->column_titles[$i]] == table2array::TYPE_PERCENTAGE)) { // value number or percentage
+			$c_column_struct = $this->column_structure[$this->column_titles[$i]]; // current column structure;
+			if ($c_column_struct !== "undefined") {					
+				// value number or percentage
+				if (($c_column_struct == table2array::TYPE_NUMBER) or ($c_column_struct == table2array::TYPE_PERCENTAGE)) { 
 					$this->value_columns[] = $this->column_titles[$i];
 				}
-				if (($this->column_structure[$this->column_titles[$i]] === table2array::TYPE_STRING) or ($this->column_structure[$this->column_titles[$i]] == table2array::TYPE_YEAR) or ($this->column_structure[$this->column_titles[$i]] == table2array::TYPE_DATE)) { // label
+				// label
+				if (($c_column_struct === table2array::TYPE_STRING) or ($c_column_struct == table2array::TYPE_YEAR) or ($c_column_struct == table2array::TYPE_DATE) or ($c_column_struct == table2array::TYPE_MONTH)) { 
 					$this->label_columns[] = $this->column_titles[$i];
 				}
-				if ($this->column_structure[$this->column_titles[$i]] === 'not_unique_text') {
+				if ($c_column_struct === 'not_unique_text') {
 					$this->nut_label_columns[] = $this->column_titles[$i];
 				}
 			}
@@ -75,9 +78,10 @@ class chart extends table2array {
 			$this->row_count = $this->row_count-1;
 		}
 		
+	// Is there at least one label and one value column
 	if (((count($this->label_columns) != 0) or (count($this->nut_label_columns) != 0)) and (count($this->value_columns) != 0))
 	{
-		
+		// One value column
 		if (count($this->value_columns) == 1) {
 			//percentage 
 			if ($this->column_structure[$this->value_columns[0]] == table2array::TYPE_PERCENTAGE) {
@@ -98,7 +102,7 @@ class chart extends table2array {
 				$graph = $this->line_or_bar();
 			}
 		}		
-		else {
+		else { // more than 1 value column
 			// line or bar
 			// check if each column is percentage or a normal number
 			$checksum = 0;
@@ -117,12 +121,9 @@ class chart extends table2array {
 								$graph["value"][] = $this->value_columns[$i];
 							}
 							$graph["special"] = "nut";
-						
 					}
 				}
-				else {
-				
-					
+				else { // more than 1 label column
 					if (($this->row_count <= 10) or (count($this->nut_label_columns) == 0)) {
 						$graph = $this->line_or_bar();
 					}
@@ -135,7 +136,6 @@ class chart extends table2array {
 						$graph["special"] = "nut";
 					}						
 				}
-			
 			}
 			
 			
@@ -243,7 +243,6 @@ class chart extends table2array {
 	
 		
 		
-		
 		switch($graph["type"]) {
 			case "line": 
 				return array('line',$this->create_json_line($graph["label"],$graph["value"])); 
@@ -257,7 +256,9 @@ class chart extends table2array {
 			case "stackedbar":
 				return array('stackedbar',$this->create_json_stackedbar($graph["label"],$graph["value"],$graph["label_value"])); 
 				break;
-		
+			case "lineDoubleY":
+				return array('lineDoubleY',$this->create_json_lineDoubleY($graph["label"],$graph["value"])); 
+				break;
 		}
 	}
 		
@@ -265,21 +266,30 @@ class chart extends table2array {
 		$graph = array();
 		for ($i = 0; $i < count($this->label_columns); $i++)
 			{
-				if (($this->column_structure[$this->label_columns[$i]] == table2array::TYPE_YEAR) or ($this->column_structure[$this->label_columns[$i]] == table2array::TYPE_DATE)) { // year or date
+				$c_column_struct = $this->column_structure[$this->label_columns[$i]];
+				// year or date or month
+				if (($c_column_struct == table2array::TYPE_YEAR) or ($c_column_struct == table2array::TYPE_DATE) or ($c_column_struct == table2array::TYPE_MONTH)) { 
 					// line
 					$graph["type"] = "line";
 					$graph["label"] = $this->label_columns[$i];
 					$graph["value"] = $this->value_columns;
+					if (count($this->value_columns) == 2) {
+						$unit_1 = $this->get_value_unit($this->value_columns[0]);
+						$unit_2 = $this->get_value_unit($this->value_columns[1]);
+						if (($unit_1 != "") and ($unit_1 != $unit_2)) { // not the same and unempty unit
+							$graph["type"] = "lineDoubleY";
+							$graph["label"] = $this->label_columns[$i];
+							$graph["value"] = $this->value_columns;
+						}
+					}
+					return $graph;
 				}
-				break;
 			}
 			
-		if ($graph["type"] != "line") {
-			// bar
-			$graph["type"] = "bar";
-			$graph["label"] = $this->label_columns[0];
-			$graph["value"] = $this->value_columns;						
-		}		
+		// bar
+		$graph["type"] = "bar";
+		$graph["label"] = $this->label_columns[0];
+		$graph["value"] = $this->value_columns;		
 		return $graph;
 	}
 		
@@ -447,7 +457,6 @@ class chart extends table2array {
 	
 	
 	function create_json_line($label,$values) {
-		//list($labels,$data,$dot) = $this->interim_values($label,$value);
 		$count_val = count($values);
 		
 		$rgb = Color::get_n_colors($count_val);
@@ -466,11 +475,37 @@ class chart extends table2array {
 				
 				$datasets[] = array("fillColor"=>$rgb[$v],"strokeColor"=>$rgb[$v],"pointColor"=>$rgb[$v],"pointStrokeColor"=>$rgb[$v],"title"=>$values[$v],"data"=>$data);
 			}
-		
 
-		
-		
 		$return = array("labels"=>$labels,"datasets"=>$datasets);
+		
+		return json_encode($return);
+		
+		//return $return;		
+	
+	}
+	
+	
+	function create_json_lineDoubleY($label,$values) {
+		$count_val = count($values); 
+		
+		$rgb = Color::get_n_colors($count_val);
+		
+		$labels = array();
+			for ($i = 0; $i < $this->row_count-1; $i++) {
+				$labels[] = $this->row_array[$i][$label];
+			}
+			
+			$datasets = array();
+			for ($v = 0; $v < $count_val; $v++) {
+				$data = array();
+				for ($i = 0; $i < $this->row_count-1; $i++) {
+					$data[] = floatval($this->row_array[$i][$values[$v]]);
+				}
+				
+				$datasets[] = array("fillColor"=>$rgb[$v],"strokeColor"=>$rgb[$v],"pointColor"=>$rgb[$v],"pointStrokeColor"=>$rgb[$v],"title"=>$values[$v],"data"=>$data);
+			}
+
+		$return = array("labels"=>$labels,"datasets_Y1"=>array($datasets[0]),"datasets_Y2"=>array($datasets[1]));
 		
 		return json_encode($return);
 		
@@ -517,9 +552,7 @@ class chart extends table2array {
 	}
 	
 	function ddMMYYYY2array($date,$format) {
-		if ($this->lang == "de") { $months = array("Januar","Februar","MÃ¤rz","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"); }
-		if ($this->lang == "en") { $months = array("January","February","March","April","May","June","July","August","September","Oktober","November","December"); }
-		if (in_array($format,$months)) {
+		if (in_array($format,$this->month)) {
 			$parts = explode(" ", $date);
 			$month = array_search($parts[1], $months)+1;
 			if ($month < 10) {
@@ -542,6 +575,17 @@ class chart extends table2array {
 		return array($year,$month,$day);
 	}
 	
+	
+	function get_value_unit($string) {
+		preg_match("/(.*) (in (.*)|\((.*)\))/", $string, $output_array);
+		if ($output_array[3]) {
+			return $output_array[3];
+		} 
+		if ($output_array[4]) {
+			return $output_array[4];
+		} 
+		return "";
+	}
 
 }
 	

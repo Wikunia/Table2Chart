@@ -37,6 +37,7 @@
 	
 	class table2array {
 		public $lang;
+		public $month;
 	
 		public $table;
 		public $column_titles;
@@ -57,11 +58,21 @@
 		const TYPE_DATE = 		5;
 		const TYPE_CHANGE = 	6;
 		const TYPE_RANK = 		7;
-	
-		
+		const TYPE_MONTH = 		8;
+
 		/*  main function creates all arrays */
 		
 		function get_array($table,$lang) {
+			switch($lang) {
+				case "en": 
+					$this->month = array("January","February","March","April","May","June","July","August","September","October","November","December");
+					break;
+				case "de": 
+					$this->month = array("Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember");
+					break;
+			}
+		
+		
 			$this->table = $table;
 			$this->lang = $lang;
 			
@@ -330,8 +341,13 @@
 						}
 					 }
 					}
-					else {
-						$return = self::TYPE_STRING; 
+					else { // not numeric
+						// is month
+						if (in_array($this->row_array[$row][$col],$this->month)) {
+							$return = self::TYPE_MONTH;
+						} else { // no month
+							$return = self::TYPE_STRING;
+						}						
 					}
 				}
 			}
@@ -359,8 +375,15 @@
 								$column_structure = table2array::TYPE_NUMBER;	
 							}
 							else {
-								$column_structure = "undefined";
-								break;
+								// month can be interpreted as a normal string
+								if ((($column_structure == self::TYPE_MONTH) and ($this->array_structure[$this->column_titles[$i]][$j] == self::TYPE_STRING)) or (($column_structure == self::TYPE_STRING) and ($this->array_structure[$this->column_titles[$i]][$j] == self::TYPE_MONTH))) {
+									if ($column_structure == self::TYPE_MONTH) { $this->array_structure[$this->column_titles[$i]][0] = self::TYPE_STRING; }
+									if ($column_structure == self::TYPE_STRING) { $this->array_structure[$this->column_titles[$i]][$j] = self::TYPE_STRING; }
+									$column_structure = table2array::TYPE_STRING;	
+								} else {
+									$column_structure = "undefined";
+									break;
+								}
 							}
 						}
 					}
