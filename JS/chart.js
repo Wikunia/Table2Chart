@@ -1814,13 +1814,12 @@ window.Chart = function(lang,context, options){
 					}
 				}
 			
-			
-				function yPos(dataSet,iteration){	
-					return xAxisPosY - animPc*(calculateOffset(config,actual_dataset[dataSet].data[iteration],actual_calculatedScale,actual_scaleHop));			
-				}
-				function xPos(iteration){
-					return yAxisPosX + (valueHop * iteration);
-				}
+			}
+			function yPos(dataSet,iteration){	
+				return xAxisPosY - animPc*(calculateOffset(config,actual_dataset[dataSet].data[iteration],actual_calculatedScale,actual_scaleHop));			
+			}
+			function xPos(iteration){
+				return yAxisPosX + (valueHop * iteration);
 			}
 		}
 		function drawScale(){
