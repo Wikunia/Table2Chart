@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /*
 * This class generates an row based array of a table
 * + a structure array of this table 
@@ -63,6 +63,8 @@
 		/*  main function creates all arrays */
 		
 		function get_array($table,$lang) {
+		
+			// Get months
 			switch($lang) {
 				case "en": 
 					$this->month = array("January","February","March","April","May","June","July","August","September","October","November","December");
@@ -96,11 +98,17 @@
 			$tr = explode("</tr>", $tr_start);
 			$ths = explode("<th",str_replace("</th>","",$tr[0]));
 			$this->col_count = count($ths)-1;
+			
+			if ($this->col_count == 0) { // no <th> tags
+				$ths = explode("<td",str_replace("</td>","",$tr[0]));
+				$this->col_count = count($ths)-1;
+			}
+			
 			for ($i = 1; $i <= $this->col_count; $i++) {
-				// delete some html in the <th>-Tag 
+				// delete some html in the <th>/<td>-Tag 				
+				$ths[$i] = $this->delete_until($ths[$i],'>');
 				$ths[$i] = $this->readable_html($ths[$i]);
-				
-				$result[] = trim(utf8_decode(substr($ths[$i],strpos($ths[$i],">")+1)));
+				$result[] = trim(utf8_decode($ths[$i]));
 			}
 			// if table has a two-column based table (year,inhabitans),(year,inhabitans) create unique titles (delete redundant titles)
 			$result = $this->get_unique_titles($result); 
@@ -113,14 +121,20 @@
 			$not_unique = array();
 			for ($i = 0; $i < $this->col_count; $i++) {
 				$ele = array_pop($result); 
-				if (in_array($ele,$result)) { // if column title not unique
+				if (in_array($ele,$result) and $ele != "") { // if column title not unique
 					$not_unique[] = $i;
 				}
 			}
 			$result = array();
+			$k = 0;
 			for ($i = 0; $i < $this->col_count; $i++) {
 				if (!in_array($i,$not_unique)) {
-				$result[] = $array[$i];
+					if ($array[$i] != "") {
+						$result[] = $array[$i];
+					} else {
+						$result[] = "empty".$k;
+						$k++;
+					}
 				}
 			}
 			$this->col_count_unique = count($result);
@@ -425,14 +439,19 @@
 		
 		
 		function readable_html($in) {
-			$in = preg_replace('#<[a-zA-Z]{1,5} (.*)style="(.*)display:none(.*)"></[a-zA-Z]{1,5}>#Uis',"",$in);
-			$in = preg_replace('#<[a-zA-Z]{1,5}>#Uis',"",$in);
-			$in = preg_replace('#</[a-zA-Z]{1,5}>#Uis',"",$in);
-			$in = preg_replace('#<[a-zA-Z]{1,5} (.*)>#Uis',"",$in);
+			$in = preg_replace('#<[a-zA-Z]{1,5} (.*?)style="(.*?)display:none(.*?)"></[a-zA-Z]{1,5}>#is',"",$in);
+			$in = preg_replace('#<[a-zA-Z]{1,5}>#is',"",$in);
+			$in = preg_replace('#</[a-zA-Z]{1,5}>#is',"",$in);
+			$in = preg_replace('#<[a-zA-Z]{1,5} (.*?)>#is',"",$in);
 			
 			
 			$in = str_replace('&#160;','',$in);
 			$out = str_replace("\n","",$in); 
 			return $out;
+		}
+		
+		function delete_until($in,$until) {
+			$in = preg_replace("/^(.*?)$until/i",'',$in);
+			return $in;
 		}
 	}
