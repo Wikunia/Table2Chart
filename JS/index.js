@@ -8,15 +8,16 @@ $(document).ready(function(){
 		
 		if (value_column != "" && bool_show_all[type] === false) {
 				var show_all = new Array();
-				show_all.push({title:"Show all"});
-				legend($("#"+type+"Legend"), show_all);
+				show_all.push({title:"Show all"});	
+				legend(type+"Legend", show_all, false);
 				bool_show_all[type] = true;
 		}
 		
 		if (value_column == "Show all") {
 			value_column = "";
+			bool_show_all[type] = false;
 		}
-	
+		
 		$.post("getdata.php", {table: table,lang: lang,value: value_column}, function(json)  {
 			if (json) {	
 				
@@ -116,8 +117,13 @@ $(document).ready(function(){
 	});
 	
 	
-	function legend(type, data) {
+	function legend(type, data,del) {
+		del = typeof del !== 'undefined' ? del : true;
+		
 		var parent = $("#"+type);
+		if (del === true) {
+			$("#"+type).html('');
+		}
 		if (type == "lineDoubleYLegend") {
 			for (var i = 1; i <= 2; i++) {
 				var title = document.createElement('span');
@@ -147,6 +153,7 @@ $(document).ready(function(){
 	$(".title").live("click", function(e) {
 		var title = $(this).attr('title');
 		var type = $(this).parent('.legend').attr("id").replace(/Legend/,'');
+		
 		if (type == "bar" || type == "stackedBar" || type == "line") {
 			$.get("tables/"+type+".htm", function(data) {
 			}).success(function (data) {
