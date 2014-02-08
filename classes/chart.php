@@ -215,28 +215,32 @@ class chart extends table2array {
 		}
 	} else {
 		// line chart
-		if ((count($this->label_columns) == 0) and (count($this->value_columns) == 2)) {
-			// check if one value column is like 1,2,3,4...
-			for ($i = 0; $i < 2; $i++) {
-				if ($this->is_like_rank($this->value_columns[$i])) {
-					$graph['type'] = 'line';
-					$graph['label'] = $this->value_columns[$i];
-					switch ($i) {
-						case 0:
-							$graph['value'][] = $this->value_columns[1];
-							break;
-						case 1:
-							$graph['value'][] = $this->value_columns[0];
-							break;
+		if (count($this->label_columns) == 0) {
+			if (count($this->value_columns) == 2) {
+				// check if one value column is like 1,2,3,4...
+				for ($i = 0; $i < $this->value_columns; $i++) {
+					if ($this->is_like_rank($this->value_columns[$i])) {
+						$graph['type'] = 'line';
+						$graph['label'] = $this->value_columns[$i];
+						switch ($i) {
+							case 0:
+								$graph['value'][] = $this->value_columns[1];
+								break;
+							case 1:
+								$graph['value'][] = $this->value_columns[0];
+								break;
+						}
+						break;
 					}
-					break;
 				}
 			}
 			if (!isset($graph['type'])) {
-				// no rank -> first column = label -> second column = value
+				// no rank -> first column = label -> other columns = value
 				$graph['type'] = 'line';
 				$graph['label'] = $this->value_columns[0];
-				$graph['value'][] = $this->value_columns[1];
+				for ($i = 1; $i < count($this->value_columns); $i++) {
+					$graph['value'][] = $this->value_columns[$i];
+				}
 			}
 		}
 	}	

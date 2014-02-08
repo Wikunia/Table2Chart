@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /*
 * This class generates an row based array of a table
 * + a structure array of this table 
@@ -45,6 +45,7 @@
 		public $col_count;
 		public $col_count_unique;
 		public $row_array;
+		public $col_array;
 		public $type_array;
 		public $array_structure;
 		public $column_structure;
@@ -108,7 +109,7 @@
 				// delete some html in the <th>/<td>-Tag 				
 				$ths[$i] = $this->delete_until($ths[$i],'>');
 				$ths[$i] = $this->readable_html($ths[$i]);
-				$result[] = trim(utf8_decode($ths[$i]));
+				$result[] = trim($ths[$i]);
 			}
 			// if table has a two-column based table (year,inhabitans),(year,inhabitans) create unique titles (delete redundant titles)
 			$result = $this->get_unique_titles($result); 
@@ -147,9 +148,7 @@
 				$row_array = array();
 				$rows = explode("<tr",$this->table);
 				
-				
-				
-				
+
 				$r = 0;
 				// ($this->col_count/$this->col_count_unique) = number of "single tables"
 				for ($t = 1; $t <= ($this->col_count/$this->col_count_unique); $t++) { 
@@ -183,7 +182,7 @@
 									
 									$col = $this->readable_html($col);
 									
-									$col = utf8_decode($col);
+									//$col = utf8_decode($col);
 									
 									// in some entries there is sth. like < 0.1 so a number 
 									$col = str_replace('&lt;','<',$col);
@@ -454,4 +453,18 @@
 			$in = preg_replace("/^(.*?)$until/i",'',$in);
 			return $in;
 		}
+		
+		function transpose_table() {
+			$new_array = array();
+			// new Columns (old rows)
+			for ($r = 0; $r < $this->row_count-1; $r++) {
+				for ($c = 1; $c < $this->col_count; $c++) {
+					$new_array[$c][empty0] = $this->column_titles[$c];
+					$new_array[$c][$this->row_array[$r][empty0]] = $this->row_array[$r][$this->column_titles[$c]];
+				}
+			}
+			$this->col_array = $new_array;
+		
+		}
+		
 	}
