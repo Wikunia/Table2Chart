@@ -1202,16 +1202,19 @@ window.Chart = function(lang,context, options){
 			}
 		}
 		
-		 // Check if logarithmic is meanigful
-		var OrderOfMagnitude = calculateOrderOfMagnitude(Math.pow(10,calculateOrderOfMagnitude(valueBounds.maxValue)+1))-calculateOrderOfMagnitude(Math.pow(10,calculateOrderOfMagnitude(valueBounds.minValue)));
+		
+		 // Check if logarithmic is meaningful
+		var OrderOfMagnitude = calculateOrderOfMagnitude(Math.abs(valueBounds.maxValue-valueBounds.minValue))+1;
+	
 		if ((config.logarithmic == 'fuzzy' && OrderOfMagnitude < 4) || config.scaleOverride) {
 		  config.logarithmic = false;
+		} else {
+			config.logarithmic = true;
 		}
-		
+
 		//Check and set the scale
 		labelTemplateString = (config.scaleShowLabels)? config.scaleLabel : "";
 		if (!config.scaleOverride){
-			
 			calculatedScale = calculateScale(config,scaleHeight,valueBounds.maxSteps,valueBounds.minSteps,valueBounds.maxValue,valueBounds.minValue,labelTemplateString);
 		}
 		else {
@@ -2337,10 +2340,14 @@ window.Chart = function(lang,context, options){
 			}
 		}
 		
-		 // Check if logarithmic is meanigful
-		var OrderOfMagnitude = calculateOrderOfMagnitude(Math.pow(10,calculateOrderOfMagnitude(valueBounds.maxValue)+1))-calculateOrderOfMagnitude(Math.pow(10,calculateOrderOfMagnitude(valueBounds.minValue)));
+		
+		 // Check if logarithmic is meaningful
+		var OrderOfMagnitude = calculateOrderOfMagnitude(Math.abs(valueBounds.maxValue-valueBounds.minValue))+1;
+	
 		if ((config.logarithmic == 'fuzzy' && OrderOfMagnitude < 4) || config.scaleOverride) {
 		  config.logarithmic = false;
+		} else {
+			config.logarithmic = true;
 		}
 		
 		//Check and set the scale
@@ -2680,7 +2687,6 @@ window.Chart = function(lang,context, options){
 	function calculateScale(config,drawingHeight,maxSteps,minSteps,maxValue,minValue,labelTemplateString){
 		var graphMin,graphMax,graphRange,stepValue,numberOfSteps,valueRange,rangeOrderOfMagnitude,decimalNum;
 		
-		
 		if (!config.logarithmic) {
 			valueRange = maxValue - minValue;
 			rangeOrderOfMagnitude = calculateOrderOfMagnitude(valueRange);
@@ -2731,7 +2737,14 @@ window.Chart = function(lang,context, options){
 	}
 	
 	function calculateOrderOfMagnitude(val){
-		  return Math.floor(Math.log(val) / Math.LN10);
+		switch(true) {
+			case (val == 0):
+				return 0;
+			case (val>0):
+				return Math.floor(Math.log(val) / Math.LN10);
+			case (val<0):
+				return -Math.floor(Math.log(Math.abs(val)) / Math.LN10);
+		}
 	}
 	
 	//Populate an array of all the labels by interpolating the string.
