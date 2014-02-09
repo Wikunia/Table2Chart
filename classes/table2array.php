@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /*
 * This class generates an row based array of a table
 * + a structure array of this table 
@@ -68,10 +68,10 @@
 			// Get months
 			switch($lang) {
 				case "en": 
-					$this->month = array("January","February","March","April","May","June","July","August","September","October","November","December");
+					$this->month = array("Jan","Feb","Mar","Apr","Jun","Jul","Aug","Sep","Oct","Nov","Dec","January","February","March","April","May","June","July","August","September","October","November","December");
 					break;
 				case "de": 
-					$this->month = array("Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember");
+					$this->month = array("Jan","Feb","Mär","Apr","Jun","Jul","Aug","Sep","Okt","Nov","Dez","Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember");
 					break;
 			}
 		
@@ -81,6 +81,19 @@
 			
 			$this->column_titles = $this->get_column_titles();
 			$this->get_structured_array();
+			
+			// reject empty labels
+			$new_row_array = $this->row_array;
+			for ($r = 0; $r < $this->row_count-1; $r++) {		
+				for ($c = 0; $c < $this->col_count; $c++) {
+					if (strpos($this->row_array[$r][$this->column_titles[$c]],"empty") === 0) { // empty label
+						array_splice($new_row_array,$r,1); 	// delete row from array
+					} 
+				}
+			}
+			$this->row_array = $new_row_array;
+			$this->row_count = count($this->row_array);
+		
 			$this->array_structure = $this->get_structure();
 			$this->column_structure = $this->get_column_structure();	
 		}
@@ -234,6 +247,10 @@
 				}
 				$this->row_count = $r+1;
 				$this->row_array = $row_array;
+				if ($this->col_count > $this->row_count+1) {
+					$this->transpose_table();
+					$this->row_array = $this->col_array;
+				}
 		}
 		
 		function get_structure() { // returns a type-array
@@ -342,7 +359,7 @@
 							if (!isset($return)) {
 								if (strpos($this->column_titles[$col_nr],"%") !== false)
 								{
-									if ((strpos($this->column_titles[$col_nr],"Veränderung") !== false) or (strpos(strtolower($this->column_titles[$col_nr]),"change") !== false)) {
+									if ((strpos($this->column_titles[$col_nr],"Ver�nderung") !== false) or (strpos(strtolower($this->column_titles[$col_nr]),"change") !== false)) {
 										$return = self::TYPE_CHANGE; // change (+|-)
 									} else {
 										$return = self::TYPE_PERCENTAGE;
@@ -459,12 +476,23 @@
 			// new Columns (old rows)
 			for ($r = 0; $r < $this->row_count-1; $r++) {
 				for ($c = 1; $c < $this->col_count; $c++) {
-					$new_array[$c][empty0] = $this->column_titles[$c];
-					$new_array[$c][$this->row_array[$r][empty0]] = $this->row_array[$r][$this->column_titles[$c]];
+					$new_array[$c-1][empty0] = $this->column_titles[$c];
+					$new_array[$c-1][$this->row_array[$r][empty0]] = $this->row_array[$r][$this->column_titles[$c]];
 				}
 			}
 			$this->col_array = $new_array;
+			$col_count = $this->row_count;
+			$this->row_count = $this->col_count;
+			$this->col_count = $col_count;
+			
 		
+			
+			$this->column_titles = array();
+			foreach($this->col_array[0] as $col => $row) {
+				$this->column_titles[] = $col;
+			}
+			$this->column_titles = $this->get_unique_titles($this->column_titles);
+			
 		}
 		
 	}

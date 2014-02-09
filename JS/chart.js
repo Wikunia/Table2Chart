@@ -532,7 +532,7 @@ window.Chart = function(lang,context, options){
 			animationEasing : "easeOutQuart",
 			onAnimationComplete : null,
 			showTooltips : true,
-			logarithmic: 'fuzzy'
+			logarithmic: false
 		};		
 		var config = (options) ? mergeChartConfig(chart.Line.defaults,options) : chart.Line.defaults;
 
@@ -640,7 +640,7 @@ window.Chart = function(lang,context, options){
 			showTooltips : true,
 			showAverageLine: true,
 			AverageStrokeColor: "#000000",
-			logarithmic: 'fuzzy'
+			logarithmic: false
 		};		
 		var config = (options) ? mergeChartConfig(chart.Bar.defaults,options) : chart.Bar.defaults;
 
@@ -1208,7 +1208,7 @@ window.Chart = function(lang,context, options){
 	
 		if ((config.logarithmic == 'fuzzy' && OrderOfMagnitude < 4) || config.scaleOverride) {
 		  config.logarithmic = false;
-		} else {
+		} else if (config.logarithmic == 'fuzzy') {
 			config.logarithmic = true;
 		}
 
@@ -1732,6 +1732,13 @@ window.Chart = function(lang,context, options){
 		//Check and set the scale
 		labelTemplateString = (config.scaleShowLabels)? config.scaleLabel : "";
 	
+		if (valueBounds.minValue_Y2 > 0) {
+			valueBounds.minValue_Y2 = 0;
+		}
+		if (valueBounds.minValue_Y1 > 0) {
+			valueBounds.minValue_Y1 = 0;
+		}
+		
 		
 		if (!config.Y1_scaleOverride) {	
 				calculatedScale_Y1 = calculateScale(config,scaleHeight,valueBounds.maxSteps,valueBounds.minSteps,valueBounds.maxValue_Y1,valueBounds.minValue_Y1,labelTemplateString);
@@ -2346,7 +2353,7 @@ window.Chart = function(lang,context, options){
 	
 		if ((config.logarithmic == 'fuzzy' && OrderOfMagnitude < 4) || config.scaleOverride) {
 		  config.logarithmic = false;
-		} else {
+		} else if (config.logarithmic == 'fuzzy') {
 			config.logarithmic = true;
 		}
 		

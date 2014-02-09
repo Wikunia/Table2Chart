@@ -9,7 +9,7 @@
 	$value = $_POST['value']; // value_column
 	$lang = $_POST['lang'];
 	
-	$chart = new chart(utf8_encode($table),$lang);
+	$chart = new chart($table,$lang);
 	list($type,$data) = $chart->create_graph();
 		
 	//echo $type.'<br>'.$data;

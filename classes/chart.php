@@ -41,6 +41,7 @@ class chart extends table2array {
 		
 		
 		
+		
 		//format the date entries 
 		$this->format_date(); 
 		
@@ -277,6 +278,7 @@ class chart extends table2array {
 					$graph["type"] = "line";
 					$graph["label"] = $this->label_columns[$i];
 					$graph["value"] = $this->value_columns;
+					
 					if (count($this->value_columns) == 2) {
 						$unit_1 = $this->get_value_unit($this->value_columns[0]);
 						$unit_2 = $this->get_value_unit($this->value_columns[1]);
