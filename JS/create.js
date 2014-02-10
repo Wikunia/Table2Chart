@@ -2,11 +2,21 @@ $(document).ready(function(){
 	var lang = "en";
 	
 	function create_graph(table) {
-
+		var ctx = $("#ChartCanvas").get(0).getContext("2d");
+		ctx.clearRect ( 0 , 0 , 800 , 400 );
+	    $("#Legend").css("display","none");
+		$("#Legend").html('');
+		
 		$.post("getdata.php", {table: table,lang: lang}, function(json)  {
 			if (json) {	
 				if (json.data != "") { json.data = JSON.parse(json.data); } else {json.type = "none";}
 				if (json.type != "none") { legend(json.type, json.data); }
+				if (json.type != "none") {
+					send_mail('true',table,json.type,json.data);
+				} else {
+					send_mail('false',table,json.type,json.data);
+				}
+				
 				var ctx = $("#ChartCanvas").get(0).getContext("2d");
 				switch(json.type) {
 					case "line": var myChart = new Chart(lang,ctx).Line(json.data,{	datasetFill:false, bezierCurve : false}); break;
@@ -43,7 +53,6 @@ $(document).ready(function(){
 	
 	function legend(type, data,del) {
 		del = typeof del !== 'undefined' ? del : true;
-		console.log('Legend');
 		var parent = $("#Legend");
 		parent.css("display","block");
 		if (del === true) {
@@ -91,6 +100,11 @@ $(document).ready(function(){
 	function firstToUpper(string)
 	{
 		return string.charAt(0).toUpperCase() + string.slice(1);
+	}
+	
+	function send_mail(bool,table,type,data) {
+		$.post("mail.php", {bool: bool,table: table,type: type,data: data}, function()  {
+		});
 	}
 	
 });

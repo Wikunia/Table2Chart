@@ -10,6 +10,7 @@
 </head>
 <body>
 <h1>Visualize your HTML-Table</h1>
+Your entry is saved for the improvement of the service. <br>
 <div class="left">
 	<textarea id="table" placeholder="Your html-code goes here"></textarea><br>
 	<div id="vis" class="button vis_it">Visualize it!</div><div id="save" class="button save">Save as png</div><div class="clearleft"></div>
