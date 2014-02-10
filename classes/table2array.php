@@ -82,6 +82,7 @@
 			$this->column_titles = $this->get_column_titles();
 			$this->get_structured_array();
 			
+			
 			// reject empty labels
 			$new_row_array = $this->row_array;
 			for ($r = 0; $r < $this->row_count-1; $r++) {		
@@ -91,8 +92,10 @@
 					} 
 				}
 			}
+			
 			$this->row_array = $new_row_array;
-			$this->row_count = count($this->row_array);
+			$this->row_count = count($this->row_array)+1;
+			
 		
 			$this->array_structure = $this->get_structure();
 			$this->column_structure = $this->get_column_structure();	

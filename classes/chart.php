@@ -39,7 +39,9 @@ class chart extends table2array {
 	function create_graph($table,$lang) {
 		
 		
-		
+		if ($this->row_count-1 <= 0) {
+			return array('none',''); 
+		}
 		
 		
 		//format the date entries 

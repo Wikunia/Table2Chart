@@ -1,0 +1,71 @@
+* {
+	font-family: "Verdana", Geneva, sans-serif;
+	margin:0px;
+}
+
+body {
+	background-color:#fcfcfc;
+	padding:20px;
+}
+
+h1 {
+	text-align:center;
+}
+
+textarea {
+	width: 300px;
+	height:500px;
+	margin:5px;
+}
+
+.button {
+	background-color:#fb0;
+	color: white;
+	border-radius: 3px;
+	padding:10px;
+	width:auto;
+	display:inline-block;
+	cursor:pointer;
+}
+
+.vis_it {
+	float:left;
+}
+
+
+.left {
+	float:left;
+	padding-right: 20px;
+	width:300px;
+}
+
+.clearleft{
+	clear:left;
+}
+
+.legend b {
+	margin-left:0.5em;
+}
+
+
+.legend {
+	display:none;
+	float:left;
+	margin-top:20px;
+	width: 250px;
+	border: 1px solid black;
+	padding:10px;
+}
+	.legend .title {
+		display: block;
+		margin: 0.5em;
+		border-style: solid;
+		border-width: 0 0 0 1em;
+		padding: 0 0.3em;
+	}
+	
+.save {
+	margin-left:15px;
+	width:100px;
+	float:left;
+}
