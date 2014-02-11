@@ -10,8 +10,8 @@ $(document).ready(function(){
 		$.post("getdata.php", {table: table,lang: lang}, function(json)  {
 			if (json) {	
 				if (json.data != "") { json.data = JSON.parse(json.data); } else {json.type = "none";}
-				if (json.type != "none") { legend(json.type, json.data); }
-				if (json.type != "none") {
+				if (json.type != "none" && json.type) { legend(json.type, json.data); }
+				if (json.type != "none" && json.type) {
 					send_mail('true',table,json.type,json.data);
 				} else {
 					send_mail('false',table,json.type,json.data);
