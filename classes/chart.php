@@ -247,18 +247,19 @@ class chart extends table2array {
 			}
 		}
 	}	
-	
 		
+		
+		$graph["value_names"] = $graph["value"];
 		
 		switch($graph["type"]) {
 			case "line": 
-				return array('line',$this->create_json_line($graph["label"],$graph["value"])); 
+				return array('line',$this->create_json_line($graph["label"],$graph["value"],$graph["value_names"])); 
 				break;
 			case "pie":
 				return array('pie',$this->create_json_pie($graph["label"],$graph["value"])); // value can't be an array
 				break;
 			case "bar":
-				return array('bar',$this->create_json_bar($graph["label"],$graph["value"],$graph["special"])); 
+				return array('bar',$this->create_json_bar($graph["label"],$graph["value"],$graph["value_names"],$graph["special"])); 
 				break;
 			case "stackedbar":
 				return array('stackedbar',$this->create_json_stackedbar($graph["label"],$graph["value"],$graph["label_value"])); 
@@ -363,7 +364,7 @@ class chart extends table2array {
 	
 	
 	
-	function create_json_bar($label,$values,$special) { // values = array
+	function create_json_bar($label,$values,$val_names,$special) { // values = array
 		$count_val = count($values);
 		
 		$rgb = Color::get_n_colors($count_val);
@@ -379,7 +380,7 @@ class chart extends table2array {
 					for ($i = 0; $i < count($labels); $i++) {
 						$data[] = floatval($unique_values[$v][$labels[$i]]);
 					}
-					$datasets[] = array("fillColor"=>$rgb[$v],"strokeColor"=>$rgb[$v],"title"=>$values[$v],"data"=>$data);
+					$datasets[] = array("fillColor"=>$rgb[$v],"strokeColor"=>$rgb[$v],"title"=>$val_names[$v],"data"=>$data);
 				}
 				
 				// if there is only one dataset the function sort_array sorts the dataset desc
@@ -401,7 +402,7 @@ class chart extends table2array {
 						$data[] = floatval($this->row_array[$i][$values[$v]]);
 					}
 					
-					$datasets[] = array("fillColor"=>$rgb[$v],"strokeColor"=>$rgb[$v],"title"=>$values[$v],"data"=>$data);
+					$datasets[] = array("fillColor"=>$rgb[$v],"strokeColor"=>$rgb[$v],"title"=>$val_names[$v],"data"=>$data);
 				}
 				break;
 			default:
@@ -417,7 +418,7 @@ class chart extends table2array {
 						$data[] = floatval($this->row_array[$i][$values[$v]]);
 					}
 					
-					$datasets[] = array("fillColor"=>$rgb[$v],"strokeColor"=>$rgb[$v],"title"=>$values[$v],"data"=>$data);
+					$datasets[] = array("fillColor"=>$rgb[$v],"strokeColor"=>$rgb[$v],"title"=>$val_names[$v],"data"=>$data);
 				}
 				
 				// if there is only one dataset the function sort_array sorts the dataset desc
@@ -464,7 +465,7 @@ class chart extends table2array {
 	}
 	
 	
-	function create_json_line($label,$values) {
+	function create_json_line($label,$values,$val_names) {
 		$count_val = count($values);
 		
 		$rgb = Color::get_n_colors($count_val);
@@ -481,7 +482,7 @@ class chart extends table2array {
 					$data[] = floatval($this->row_array[$i][$values[$v]]);
 				}
 				
-				$datasets[] = array("fillColor"=>$rgb[$v],"strokeColor"=>$rgb[$v],"pointColor"=>$rgb[$v],"pointStrokeColor"=>$rgb[$v],"title"=>$values[$v],"data"=>$data);
+				$datasets[] = array("fillColor"=>$rgb[$v],"strokeColor"=>$rgb[$v],"pointColor"=>$rgb[$v],"pointStrokeColor"=>$rgb[$v],"title"=>$val_names[$v],"data"=>$data);
 			}
 
 		$return = array("labels"=>$labels,"datasets"=>$datasets);
@@ -595,6 +596,12 @@ class chart extends table2array {
 		return "";
 	}
 
+	
+	function calculateOrderOfMagnitude($val){
+		return floor(log($val) / log(10));
+	}
+	
+	
 }
 	
 	

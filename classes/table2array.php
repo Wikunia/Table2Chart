@@ -85,17 +85,17 @@
 			
 			// reject empty labels
 			$new_row_array = $this->row_array;
-			for ($r = 0; $r < $this->row_count-1; $r++) {		
+			$loop_var = $this->row_count-1;
+			for ($r = 0; $r < $loop_var; $r++) {		
 				for ($c = 0; $c < $this->col_count; $c++) {
 					if (strpos($this->row_array[$r][$this->column_titles[$c]],"empty") === 0) { // empty label
 						array_splice($new_row_array,$r,1); 	// delete row from array
+						$this->row_count--;
 					} 
 				}
 			}
 			
 			$this->row_array = $new_row_array;
-			$this->row_count = count($this->row_array)+1;
-			
 		
 			$this->array_structure = $this->get_structure();
 			$this->column_structure = $this->get_column_structure();	

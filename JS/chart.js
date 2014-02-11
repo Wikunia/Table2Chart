@@ -701,7 +701,8 @@ window.Chart = function(lang,context, options){
 			//If the label height is less than 5, set it to 5 so we don't have lines on top of each other.
 			labelHeight = Default(labelHeight,5);
 		}
-		function drawScale(){
+		function drawScale() {
+		
 			for (var i=0; i<calculatedScale.steps; i++){
 				//If the line object is there
 				if (config.scaleShowLine){
@@ -1597,6 +1598,11 @@ window.Chart = function(lang,context, options){
 
 			ctx.textAlign = "right";
 			ctx.textBaseline = "middle";
+			
+			if (config.scaleShowLabels){
+				ctx.fillText(thousand_separator(calculatedScale.graphMin),yAxisPosX-8,xAxisPosY);
+			}
+			
 			for (var j=0; j<calculatedScale.steps; j++){
 				ctx.beginPath();
 				ctx.moveTo(yAxisPosX-3,xAxisPosY - ((j+1) * scaleHop));
@@ -2495,6 +2501,10 @@ window.Chart = function(lang,context, options){
 
 			ctx.textAlign = "right";
 			ctx.textBaseline = "middle";
+			if (config.scaleShowLabels){
+				ctx.fillText(thousand_separator(calculatedScale.graphMin),yAxisPosX-8,xAxisPosY);
+			}
+			
 			for (var j=0; j<calculatedScale.steps; j++){
 				ctx.beginPath();
 				ctx.moveTo(yAxisPosX-3,xAxisPosY - ((j+1) * scaleHop));
@@ -2698,6 +2708,7 @@ window.Chart = function(lang,context, options){
 			valueRange = maxValue - minValue;
 			rangeOrderOfMagnitude = calculateOrderOfMagnitude(valueRange);
 			graphMin = Math.floor(minValue / (1 * Math.pow(10, rangeOrderOfMagnitude))) * Math.pow(10, rangeOrderOfMagnitude);       
+			
 			graphMax = Math.ceil(maxValue / (1 * Math.pow(10, rangeOrderOfMagnitude))) * Math.pow(10, rangeOrderOfMagnitude);
 		}
 		else {
@@ -2723,6 +2734,11 @@ window.Chart = function(lang,context, options){
 					stepValue *=2;
 					numberOfSteps = Math.round(graphRange/stepValue);
 				}
+			}
+			
+			if (graphMin-stepValue > 0) {
+				graphMin -= stepValue;
+				numberOfSteps++;
 			}
 		} else {
 			numberOfSteps = rangeOrderOfMagnitude;
