@@ -572,7 +572,8 @@ window.Chart = function(lang,context, options){
 			animation :true,
 			animationSteps : 60,
 			animationEasing : "easeOutQuart",
-			onAnimationComplete : null
+			onAnimationComplete : null,
+			showTooltips : true
 		};		
 		var config = (options) ? mergeChartConfig(chart.Line.defaults,options) : chart.Line.defaults;
 		
@@ -1779,6 +1780,10 @@ window.Chart = function(lang,context, options){
 		}
 		
 		
+		if (calculatedScale_Y1.graphMin < 0 && calculatedScale_Y1.graphMin < calculatedScale_Y2.graphMin) {
+			calculatedScale_Y2 = calcDoubleY2Scale(config,calculatedScale_Y1,calculatedScale_Y2,scaleHeight,valueBounds.maxSteps,valueBounds.minSteps,valueBounds.maxValue_Y2,valueBounds.minValue_Y2,labelTemplateString);
+		}
+		
 		
 		calculatedScale = calculatedScale_Y1; // it is only important for x-Axis
 		
@@ -1817,6 +1822,7 @@ window.Chart = function(lang,context, options){
 					else{
 						ctx.closePath();
 					}
+					var pointRadius = config.pointDotRadius+config.pointDotStrokeWidth;
 					if(config.pointDot){
 						ctx.fillStyle = actual_dataset[i].pointColor;
 						ctx.strokeStyle = actual_dataset[i].pointStrokeColor;
@@ -1824,6 +1830,9 @@ window.Chart = function(lang,context, options){
 						for (var k=0; k<actual_dataset[i].data.length; k++){
 							ctx.beginPath();
 							ctx.arc(yAxisPosX + (valueHop *k),xAxisPosY - animPc*(calculateOffset(config,actual_dataset[i].data[k],actual_calculatedScale,actual_scaleHop)),config.pointDotRadius,0,Math.PI*2,true);
+							if(animPc >= 1 && config.showTooltips) {
+								registerTooltip(ctx,{type:'circle',x:xPos(k),y:yPos(i,k),r:pointRadius},{label:data.labels[k],value:actual_dataset[i].data[k]},'LineDoubleY');
+							}
 							ctx.fill();
 							ctx.stroke();
 						}
@@ -1932,7 +1941,9 @@ window.Chart = function(lang,context, options){
 						if (n_scale == 1) {
 							ctx.fillText(thousand_separator(actual_calculatedScale.labels[j]),yAxisPosX-8,xAxisPosY - ((j+1) * actual_scaleHop));
 						} else {
-							ctx.fillText(thousand_separator(actual_calculatedScale.labels[j]),yAxisPosX+xAxisLength+distance_Y2+8,xAxisPosY - ((j+1) * actual_scaleHop));
+							if ((valueBounds.minValue_Y2 == 0 && actual_calculatedScale.labels[j] >= 0) || valueBounds.minValue_Y2 < 0) {//maximum of minValue is 0!
+								ctx.fillText(thousand_separator(actual_calculatedScale.labels[j]),yAxisPosX+xAxisLength+distance_Y2+8,xAxisPosY - ((j+1) * actual_scaleHop));
+							}
 						}
 					}
 				}
@@ -2704,12 +2715,13 @@ window.Chart = function(lang,context, options){
 	function calculateScale(config,drawingHeight,maxSteps,minSteps,maxValue,minValue,labelTemplateString){
 		var graphMin,graphMax,graphRange,stepValue,numberOfSteps,valueRange,rangeOrderOfMagnitude,decimalNum;
 		
-		if (!config.logarithmic) {
+		
+		if (!config.logarithmic) { // no logarithmic scale
 			valueRange = maxValue - minValue;
 			rangeOrderOfMagnitude = calculateOrderOfMagnitude(valueRange);
-			graphMin = Math.floor(minValue / (1 * Math.pow(10, rangeOrderOfMagnitude))) * Math.pow(10, rangeOrderOfMagnitude);       
+			graphMin = Math.floor(minValue / Math.pow(10, rangeOrderOfMagnitude)) * Math.pow(10, rangeOrderOfMagnitude);       
 			
-			graphMax = Math.ceil(maxValue / (1 * Math.pow(10, rangeOrderOfMagnitude))) * Math.pow(10, rangeOrderOfMagnitude);
+			graphMax = Math.ceil(maxValue / Math.pow(10, rangeOrderOfMagnitude)) * Math.pow(10, rangeOrderOfMagnitude);
 		}
 		else {
 			graphMin = Math.pow(10,calculateOrderOfMagnitude(minValue));
@@ -2720,10 +2732,8 @@ window.Chart = function(lang,context, options){
 		graphRange = graphMax - graphMin;
 		stepValue = Math.pow(10, rangeOrderOfMagnitude);
 		numberOfSteps = Math.round(graphRange / stepValue);
-
 		
-		
-		if (!config.logarithmic) {
+		if (!config.logarithmic) { // no logarithmic scale
 			//Compare number of steps to the max and min for that size graph, and add in half steps if need be.	        
 			while(numberOfSteps < minSteps || numberOfSteps > maxSteps) {
 				if (numberOfSteps < minSteps){
@@ -2752,10 +2762,45 @@ window.Chart = function(lang,context, options){
 			steps : numberOfSteps,
 			stepValue : stepValue,
 			graphMin : graphMin,
+			graphMax : graphMax,
 			labels : labels,
 			maxValue: maxValue
 		}
 
+		
+	}
+	
+	
+	function calcDoubleY2Scale(config,ScaleY1,ScaleY2,drawingHeight,maxSteps,minSteps,maxValue,minValue,labelTemplateString) {
+		var numberOfSteps,zero_Y1;
+		numberOfSteps = ScaleY1.steps;
+		$.each(ScaleY1.labels, function( index, value ) {
+		  if (value == 0) {
+			zero_Y1 = index;
+			return;
+		  }
+		});
+		
+		if (ScaleY2.steps+zero_Y1+1 > numberOfSteps) {
+			while ((numberOfSteps-zero_Y1-1)*ScaleY2.stepValue < ScaleY2.graphMax) {
+				ScaleY2.stepValue *= 2;
+			}
+		}
+		
+		var labels = [];
+		
+			ScaleY2.graphMin = ScaleY2.graphMin-(zero_Y1+1)*ScaleY2.stepValue;
+			populateLabels(config,labelTemplateString, labels, numberOfSteps, ScaleY2.graphMin, ScaleY2.graphMax, ScaleY2.stepValue);
+			
+			return {
+				steps : numberOfSteps,
+				stepValue : ScaleY2.stepValue,
+				graphMin : ScaleY2.graphMin,
+				graphMax : ScaleY2.graphMax,
+				labels : labels,
+				maxValue: maxValue
+			}
+		
 		
 	}
 	
