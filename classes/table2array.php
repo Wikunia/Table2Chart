@@ -98,13 +98,15 @@
 			$this->row_array = $new_row_array;
 		
 			$this->array_structure = $this->get_structure();
+			// Check row_array for unit entries like '12 &deg; C' => interpreted this as a number and the column title would have &deg; C afterwards
+			$this->unit_checker();
+			
 			$this->column_structure = $this->get_column_structure();	
 		}
 		
 		/* Creating the column array */
-		
 		function get_column_titles() {
-			// update $this->table
+			// update $this->table (only text inside <table>)
 			$table_start = explode("<table", $this->table);
 			$table_start = substr($table_start[1],strpos($table_start[1],">")+1);
 			$table = explode("</table>", $table_start);
@@ -170,7 +172,6 @@
 				for ($t = 1; $t <= ($this->col_count/$this->col_count_unique); $t++) { 
 					$col_min = ($t-1)*$this->col_count_unique;
 					$col_max = $t*$this->col_count_unique;
-					
 					
 					$i = -2;
 					foreach ($rows as $row) {
@@ -309,6 +310,7 @@
 					}			
 				}
 				
+				
 				if (!isset($return)) {
 					if (is_numeric($this->row_array[$row][$col])) {
 						if ((strpos(strtolower($this->column_titles[$col_nr]),"rank") !== false) or (strpos($this->column_titles[$col_nr],"Rang") !== false) or (strpos($this->column_titles[$col_nr],"Nr.") !== false) or (strpos(strtolower($this->column_titles[$col_nr]),"no.") !== false))
@@ -362,7 +364,7 @@
 							if (!isset($return)) {
 								if (strpos($this->column_titles[$col_nr],"%") !== false)
 								{
-									if ((strpos($this->column_titles[$col_nr],"Veränderung") !== false) or (strpos(strtolower($this->column_titles[$col_nr]),"change") !== false)) {
+									if ((strpos($this->column_titles[$col_nr],"VerÃ¤nderung") !== false) or (strpos(strtolower($this->column_titles[$col_nr]),"change") !== false)) {
 										$return = self::TYPE_CHANGE; // change (+|-)
 									} else {
 										$return = self::TYPE_PERCENTAGE;
@@ -496,6 +498,71 @@
 			}
 			$this->column_titles = $this->get_unique_titles($this->column_titles);
 			
+		}
+		
+		
+		function unit_checker() {
+			// only string columns are interesting
+			foreach ($this->array_structure as $col => $one_row_struct) {
+				$full_break = false;
+				foreach($one_row_struct as $cell_struct) {
+					if ($cell_struct != self::TYPE_STRING) {
+						$full_break = true;
+						break;
+					}
+				}
+				
+				if ($full_break === false) {
+					$unit_break = false;
+					// every cell in this row is a string
+					$numeric_parts = array();
+					foreach($this->row_array as $row => $one_row_array) {
+						$parts = explode(" ",$one_row_array[$col],2);
+						$numeric_part = $parts[0];
+						$unit_part = trim($parts[1]);
+						if (is_numeric($numeric_part))   {
+							$numeric_parts[] = $numeric_part;
+							// check if every unit is the same
+							if ($unit_part != $unit) {
+								if (!$unit) {
+									$unit = $unit_part;
+								} else {
+									$unit_break = true;
+									break;
+								}
+							}
+						}
+					}
+					if ($unit_break === false) {
+						// every cell in this column has the same unit and is numeric
+						// => new cell type (number instead of string)
+						foreach ($this->array_structure[$col] as $key_cell => $val_cell) {
+							$this->array_structure[$col][$key_cell] = self::TYPE_NUMBER;
+						}
+						// => new cell value (without unit) 
+						for($cn = 0; $cn < $this->row_count; $cn++) {
+							$this->row_array[$cn][$col] = $numeric_parts[$cn];
+						}
+						// => new column title 
+							// in $this->column_titles
+							$key = array_search($col,$this->column_titles);
+							$this->column_titles[$key] = $this->column_titles[$key].' ('.$unit.')';
+							// in $this->row_array
+							for($cn = 0; $cn < $this->row_count; $cn++) {
+								$this->row_array[$cn][$col.' ('.$unit.')'] = $this->row_array[$cn][$col];
+								unset($this->row_array[$cn][$col]);
+							}
+							// in $this->array_structure
+							$this->array_structure[$col.' ('.$unit.')'] = array();
+							foreach ($this->array_structure[$col] as $key_cell => $val_cell) {
+								$this->array_structure[$col.' ('.$unit.')'][$key_cell] = $this->array_structure[$col][$key_cell];
+							}
+							unset($this->array_structure[$col]);
+							
+							
+					}
+				}
+			}
 		}
 		
 	}

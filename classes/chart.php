@@ -156,8 +156,7 @@ class chart extends table2array {
 					}
 				}
 				
-				// can't be pie chart 
-				
+					// can't be pie chart 
 					if ($row_based_hundred === false) {
 						$graph["type"] = "bar";
 						$graph["label"] = $this->label_columns[0];
@@ -251,6 +250,8 @@ class chart extends table2array {
 		
 		$graph["value_names"] = $graph["value"];
 		
+
+		
 		switch($graph["type"]) {
 			case "line": 
 				return array('line',$this->create_json_line($graph["label"],$graph["value"],$graph["value_names"])); 
@@ -275,7 +276,7 @@ class chart extends table2array {
 		for ($i = 0; $i < count($this->label_columns); $i++)
 			{
 				$c_column_struct = $this->column_structure[$this->label_columns[$i]];
-				// year or date or month
+				// year, date or month
 				if (($c_column_struct == table2array::TYPE_YEAR) or ($c_column_struct == table2array::TYPE_DATE) or ($c_column_struct == table2array::TYPE_MONTH)) { 
 					// line
 					$graph["type"] = "line";
