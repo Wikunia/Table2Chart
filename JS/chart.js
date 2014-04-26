@@ -1217,7 +1217,14 @@ window.Chart = function(lang,context, options){
 		//Check and set the scale
 		labelTemplateString = (config.scaleShowLabels)? config.scaleLabel : "";
 		if (!config.scaleOverride){
-			calculatedScale = calculateScale(config,scaleHeight,valueBounds.maxSteps,valueBounds.minSteps,valueBounds.maxValue,valueBounds.minValue,labelTemplateString);
+			calculatedScale = calculateScale(
+				config,scaleHeight,
+				valueBounds.maxSteps,
+				valueBounds.minSteps,
+				valueBounds.maxValue,
+				valueBounds.minValue,
+				labelTemplateString
+			);
 		}
 		else {
 			calculatedScale = {
@@ -1229,7 +1236,15 @@ window.Chart = function(lang,context, options){
 			// important for the function populateLabels
 			var graphMax = "undefined"; 
 			config.logarithmic = false; // always for override
-			populateLabels(config,labelTemplateString, calculatedScale.labels,calculatedScale.steps,config.scaleStartValue,graphMax,config.scaleStepWidth);
+			populateLabels(
+				config,
+				labelTemplateString,
+				calculatedScale.labels,
+				calculatedScale.steps,
+				config.scaleStartValue,
+				graphMax,
+				config.scaleStepWidth
+			);
 		}
 		
 		scaleHop = Math.floor(scaleHeight/calculatedScale.steps);

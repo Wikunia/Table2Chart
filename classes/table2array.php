@@ -80,6 +80,7 @@
 			$this->lang = $lang;
 			
 			$this->column_titles = $this->get_column_titles();
+			
 			$this->get_structured_array();
 			
 			
@@ -101,7 +102,8 @@
 			// Check row_array for unit entries like '12 &deg; C' => interpreted this as a number and the column title would have &deg; C afterwards
 			$this->unit_checker();
 			
-			$this->column_structure = $this->get_column_structure();	
+			$this->column_structure = $this->get_column_structure();
+			
 		}
 		
 		/* Creating the column array */
@@ -503,9 +505,10 @@
 		
 		function unit_checker() {
 			// only string columns are interesting
-			foreach ($this->array_structure as $col => $one_row_struct) {
+			foreach ($this->array_structure as $col => $one_col_struct) {
 				$full_break = false;
-				foreach($one_row_struct as $cell_struct) {
+				foreach($one_col_struct as $cell_struct) {
+					// break if one cell_struct isn't a string
 					if ($cell_struct != self::TYPE_STRING) {
 						$full_break = true;
 						break;
@@ -514,23 +517,27 @@
 				
 				if ($full_break === false) {
 					$unit_break = false;
-					// every cell in this row is a string
+					// every cell in this col is a string
 					$numeric_parts = array();
 					foreach($this->row_array as $row => $one_row_array) {
 						$parts = explode(" ",$one_row_array[$col],2);
-						$numeric_part = $parts[0];
-						$unit_part = trim($parts[1]);
-						if (is_numeric($numeric_part))   {
-							$numeric_parts[] = $numeric_part;
-							// check if every unit is the same
-							if ($unit_part != $unit) {
-								if (!$unit) {
-									$unit = $unit_part;
-								} else {
-									$unit_break = true;
-									break;
+						if (count($parts) == 2) { // like 420 mm, 120 kHZ
+							$numeric_part = $parts[0];
+							$unit_part = trim($parts[1]);
+							if (is_numeric($numeric_part))   {
+								$numeric_parts[] = $numeric_part;
+								// check if every unit is the same
+								if ($unit_part != $unit) {
+									if (!$unit) {
+										$unit = $unit_part;
+									} else {
+										$unit_break = true;
+										break;
+									}
 								}
 							}
+						} else {
+							$unit_break = true; // there are no units
 						}
 					}
 					if ($unit_break === false) {
