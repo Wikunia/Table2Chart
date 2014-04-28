@@ -16,6 +16,7 @@ $(document).ready(function(){
 				} else {
 					send_mail('false',table,json.type,json.data);
 				}
+				console.log(json);
 				
 				var ctx = $("#ChartCanvas").get(0).getContext("2d");
 				switch(json.type) {

@@ -54,21 +54,27 @@ $(document).ready(function(){
 						var myChart = new Chart(lang,ctx).StackedBar(json.data, { scaleOverride: true, scaleSteps: 10, scaleStepWidth: 10, scaleStartValue: 0}); 
 						if (value_column == "" && bool_show_all[type] === false) { legend("stackedBarLegend", json.data); }
 						break;
+					case "map":
+						$("#map").css("display","block");
+						var myMapChart = new MapChart("mapChartCanvasMap").Map(json.data,{ width:800, height:400, range_amount: 5, color_from: '#00ff00', color_to: '#ff0000', legend: "mapLegend" }); 
 					default:
-						$("#"+type+"Legend").css("display","none");
-						$("#"+type+"ChartCanvas").css("display","block");
-						var ctx = $("#"+type+"ChartCanvas").get(0).getContext("2d");
-						var img = new Image();
-						img.onload = function(){
-							ctx.drawImage(img, 0, 0, 741, 350);
-						}
-						switch (lang) {
-							case "de": 
-								img.src = 'images/error_de.png';
-								break;
-							case "en": 
-								img.src = 'images/error_en.png';
-								break;
+						// there is no canvas if the type is a map :/ 
+						if (type != "map") {
+							$("#"+type+"Legend").css("display","none");
+							$("#"+type+"ChartCanvas").css("display","block");
+							var ctx = $("#"+type+"ChartCanvas").get(0).getContext("2d");
+							var img = new Image();
+							img.onload = function(){
+								ctx.drawImage(img, 0, 0, 741, 350);
+							}
+							switch (lang) {
+								case "de": 
+									img.src = 'images/error_de.png';
+									break;
+								case "en": 
+									img.src = 'images/error_en.png';
+									break;
+							}
 						}
 						break;
 				}
@@ -98,6 +104,9 @@ $(document).ready(function(){
 			$('html, body').animate({
 				scrollTop: $("#"+id+"Chart").offset().top
 			}, 500);
+			if (id == "map") {
+				$("#mapChartCanvasMap").html('');
+			}
 			$("#"+id+"ChartCanvas").css("display","none");	
 			$("#"+id+"Legend").css("display","none");			
 			$("#"+id+"Table").css("display","block");

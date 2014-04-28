@@ -32,6 +32,7 @@ class chart extends table2array {
 		
 	function __construct($table,$lang) {
 		// get all arrays of the table2array class
+		$this->get_countries();
 		$this->get_array($table,$lang);
 	}
 		
@@ -59,7 +60,8 @@ class chart extends table2array {
 					$this->value_columns[] = $this->column_titles[$i];
 				}
 				// label
-				if (($c_column_struct === table2array::TYPE_STRING) or ($c_column_struct == table2array::TYPE_YEAR) or ($c_column_struct == table2array::TYPE_DATE) or ($c_column_struct == table2array::TYPE_MONTH)) { 
+				$labels_types = [table2array::TYPE_STRING,table2array::TYPE_YEAR,table2array::TYPE_DATE,table2array::TYPE_MONTH,table2array::TYPE_COUNTRY];
+				if (in_array($c_column_struct,$labels_types)) { 
 					$this->label_columns[] = $this->column_titles[$i];
 				}
 				if ($c_column_struct === 'not_unique_text') {
@@ -102,7 +104,14 @@ class chart extends table2array {
 				}
 			}
 			else {
-				$graph = $this->line_or_bar();
+				// country labels
+				if ($this->column_structure[$this->label_columns[0]] == table2array::TYPE_COUNTRY) {
+					$graph["type"] = "map";
+					$graph["label"] = $this->label_columns[0];
+					$graph["value"] = $this->value_columns[0]; 
+				} else {
+					$graph = $this->line_or_bar();
+				}
 			}
 		}		
 		else { // more than 1 value column
@@ -267,6 +276,9 @@ class chart extends table2array {
 				break;
 			case "lineDoubleY":
 				return array('lineDoubleY',$this->create_json_lineDoubleY($graph["label"],$graph["value"])); 
+				break;
+			case "map":
+				return array('map',$this->create_json_map($graph["label"],$graph["value"])); 
 				break;
 		}
 	}
@@ -523,8 +535,29 @@ class chart extends table2array {
 	
 	}
 	
+	function create_json_map($label_col,$value_col) {
+	
+		$labels = array();
+			for ($i = 0; $i < $this->row_count-1; $i++) {
+				$labels[] = $this->row_array[$i][$label_col];
+			}
+		$values = array();
+			for ($i = 0; $i < $this->row_count-1; $i++) {
+				$values[] = floatval($this->row_array[$i][$value_col]);
+			}	
+			
+
+		$return = array("labels"=>$labels,"values"=>$values);
+		
+		return json_encode($return);
+		
+		//return $return;		
+	
+	}
 	
 	
+	
+	/** ******************************************************************* */
 	
 	function sort_array($labels,$datasets,$values) {
 		$data = $datasets[0]["data"];

@@ -33,6 +33,7 @@ th, td {
 }
 
 .canvasWrapper {
+	float:left;
 	margin-left:10px;
 }
 
@@ -43,7 +44,7 @@ th, td {
 .legend {
 	margin-top:20px;
 	display:none;
-	width: 250px;
+	width: 270px;
 	border: 1px solid black;
 	padding:10px;
 }
@@ -54,6 +55,15 @@ th, td {
 		border-width: 0 0 0 1em;
 		padding: 0 0.3em;
 		cursor:pointer;
+		 font-size: 1.5em;  
+	}
+	
+	.legend .range_title {
+		display: block;
+		margin: 0.5em;
+		border-style: solid;
+		border-width: 0 0 0 1em;
+		padding: 0 0.3em;
 	}
 
 .chart {

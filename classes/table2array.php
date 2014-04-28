@@ -50,6 +50,9 @@
 		public $array_structure;
 		public $column_structure;
 		
+		public $multi_countries;
+		public $countries;
+		
 		//constants for value_types
 		const TYPE_STRING = 	0;
 		const TYPE_NUMBER = 	1;
@@ -60,9 +63,28 @@
 		const TYPE_CHANGE = 	6;
 		const TYPE_RANK = 		7;
 		const TYPE_MONTH = 		8;
+		const TYPE_COUNTRY =	9;
 
-		/*  main function creates all arrays */
 		
+		function __construct() {
+			$this->get_countries();
+		}
+		
+		
+		/**
+			Generates a country array ($this->countries)
+		*/
+		function get_countries() {
+			$this->countries = array();
+			$this->multi_countries = json_decode(file_get_contents('JSON/countries.json'),true);
+			foreach($this->multi_countries as $country) {
+				if ($country['country'] !== "") {
+					$this->countries[] = $country['country'];
+				}
+			}
+		}
+		
+		/*  main function creates all arrays */
 		function get_array($table,$lang) {
 		
 			// Get months
@@ -379,12 +401,13 @@
 					 }
 					}
 					else { // not numeric
-						// is month
-						if (in_array($this->row_array[$row][$col],$this->month)) {
+						if (in_array($this->row_array[$row][$col],$this->month)) { // is month
 							$return = self::TYPE_MONTH;
-						} else { // no month
+						} elseif (in_array($this->row_array[$row][$col],$this->countries)) { // no month
+								$return = self::TYPE_COUNTRY;
+						} else { // no month and no country
 							$return = self::TYPE_STRING;
-						}						
+						}					
 					}
 				}
 			}
