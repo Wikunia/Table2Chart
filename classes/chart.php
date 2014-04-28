@@ -547,7 +547,7 @@ class chart extends table2array {
 			}	
 			
 
-		$return = array("labels"=>$labels,"values"=>$values);
+		$return = array("title"=>$value_col,"labels"=>$labels,"values"=>$values);
 		
 		return json_encode($return);
 		
