@@ -108,7 +108,7 @@
 			
 			// reject empty labels
 			$new_row_array = $this->row_array;
-			$loop_var = $this->row_count-1;
+			$loop_var = $this->row_count;
 			for ($r = 0; $r < $loop_var; $r++) {		
 				for ($c = 0; $c < $this->col_count; $c++) {
 					if (strpos($this->row_array[$r][$this->column_titles[$c]],"empty") === 0) { // empty label
@@ -120,11 +120,16 @@
 			
 			$this->row_array = $new_row_array;
 		
+		
 			$this->array_structure = $this->get_structure();
+			
+			
 			// Check row_array for unit entries like '12 &deg; C' => interpreted this as a number and the column title would have &deg; C afterwards
 			$this->unit_checker();
+	
 			
 			$this->column_structure = $this->get_column_structure();
+			
 			
 		}
 		
@@ -189,7 +194,7 @@
 		function get_structured_array() { 
 				$row_array = array();
 				$rows = explode("<tr",$this->table);
-				
+								
 
 				$r = 0;
 				// ($this->col_count/$this->col_count_unique) = number of "single tables"
@@ -208,9 +213,10 @@
 							$cols = explode("<td",$row);
 							$j = -1; 
 							foreach ($cols as $col) {
+								
 								// check if this $col is in the current "single table"
 								if (($j >= (($t-1)*$this->col_count_unique)) and ($j < ($t*$this->col_count_unique))) {
-								
+									
 									// some columns have a colspan so the entries have to be colspan times in the array
 									$colspan = 1;
 									preg_match('#colspan="(.*)"#',substr($col,0,strpos($col,">")),$match_colspan);
@@ -275,6 +281,8 @@
 				}
 				$this->row_count = $r+1;
 				$this->row_array = $row_array;
+				
+
 				if ($this->col_count > $this->row_count+1) {
 					$this->transpose_table();
 					$this->row_array = $this->col_array;
@@ -430,14 +438,23 @@
 						if ($this->array_structure[$this->column_titles[$i]][$j] != $column_structure) {
 							// year can be interpreted as a normal number
 							if ((($column_structure == self::TYPE_YEAR) and ($this->array_structure[$this->column_titles[$i]][$j] == self::TYPE_NUMBER)) or (($column_structure == self::TYPE_NUMBER) and ($this->array_structure[$this->column_titles[$i]][$j] == self::TYPE_YEAR))) {
-								if ($column_structure == self::TYPE_YEAR) { $this->array_structure[$this->column_titles[$i]][0] = self::TYPE_NUMBER; }
+								if ($column_structure == self::TYPE_YEAR) { 
+									for ($r = 0; $r < $j; $r++) {
+										$this->array_structure[$this->column_titles[$i]][$r] = self::TYPE_NUMBER; 
+									}
+								}
 								if ($column_structure == self::TYPE_NUMBER) { $this->array_structure[$this->column_titles[$i]][$j] = self::TYPE_NUMBER; }
 								$column_structure = table2array::TYPE_NUMBER;	
 							}
 							else {
-								// month can be interpreted as a normal string
-								if ((($column_structure == self::TYPE_MONTH) and ($this->array_structure[$this->column_titles[$i]][$j] == self::TYPE_STRING)) or (($column_structure == self::TYPE_STRING) and ($this->array_structure[$this->column_titles[$i]][$j] == self::TYPE_MONTH))) {
-									if ($column_structure == self::TYPE_MONTH) { $this->array_structure[$this->column_titles[$i]][0] = self::TYPE_STRING; }
+								// month and country can be interpreted as a normal string
+								if (in_array($colum_structure,array(self::TYPE_MONTH,self::TYPE_STRING,self::TYPE_COUNTRY)) and
+									in_array($this->array_structure[$this->column_titles[$i]][$j],array(self::TYPE_MONTH,self::TYPE_STRING,self::TYPE_COUNTRY))) {
+									if (in_array($column_structure,array(self::TYPE_MONTH,self::TYPE_COUNTRY))) {
+										for ($r = 0; $r < $j; $r++) {
+										//	$this->array_structure[$this->column_titles[$i]][$r] = self::TYPE_STRING; 
+										}
+									}
 									if ($column_structure == self::TYPE_STRING) { $this->array_structure[$this->column_titles[$i]][$j] = self::TYPE_STRING; }
 									$column_structure = table2array::TYPE_STRING;	
 								} else {

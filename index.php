@@ -6,7 +6,10 @@
 		<link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" />
 		<meta name="description" content="Open source tool which visualizes html tables with Chart.js. Even the type of representation is determined automatically."/>
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		<script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+		<script type="text/javascript" src="JS/gradient.min.js"></script>
 		<script type="text/javascript" src="JS/chart.js"></script>
+		<script type="text/javascript" src="JS/map.js"></script>
 		<script type="text/javascript" src="JS/index.js"></script>
 		<script type="text/javascript" src="JS/filesaver.js"></script>
 		<script type="text/javascript" src="JS/canvas-toBlob.js"></script>
@@ -155,6 +158,32 @@
 			<br><div id="vis_pie" class="button vis_it">Visualize it!</div><div id="save_bar" class="button save">Save as png</div><div class="clearleft"></div>
 		</article>
 		
+		
+		<article id="mapChart" >
+			<div class="left">
+				<h2>Map charts</h2>
+				<p>Map charts are great to visualize map-related data.</p><br>
+				<b>Required</b>
+				<ul>
+					<li>one country column</li>
+					<li>one label or value column</li>
+				</ul>
+				<div id="mapLegend" class="legend">
+					
+				</div>
+			</div>
+			<div class="canvasWrapper">
+				<div id="mapChartCanvas" class="chart"><div id="mapChartCanvasMap"></div><div id="source">Map source:<a href="http://openstreetmap.org">OpenStreetMap</a></div></div>
+			
+				<div id="mapTable" class="table">
+				<?php
+					include('tables/map.htm');
+				?>
+				</div>					
+			</div>
+			<div class="clearleft">
+			<br><div id="vis_map" class="button vis_it">Visualize it!</div><div class="clearleft"></div>
+		</article>
 		
 
 	</section>

@@ -56,7 +56,7 @@ $(document).ready(function(){
 						break;
 					case "map":
 						$("#map").css("display","block");
-						var myMapChart = new MapChart("mapChartCanvasMap").Map(json.data,{ width:800, height:400, range_amount: 5, color_from: '#00ff00', color_to: '#ff0000', legend: "mapLegend" }); 
+						var myMapChart = new MapChart("mapChartCanvasMap").Map(json.data,{ width:800, height:400, color_from: '#00ff00', color_to: '#ff0000', legend: "mapLegend" }); 
 					default:
 						// there is no canvas if the type is a map :/ 
 						if (type != "map") {

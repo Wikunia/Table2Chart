@@ -72,15 +72,19 @@ class chart extends table2array {
 		
 		// Check if the last entry of each value_column is a sum of all 
 		// -> delete this row (row_array)
-		$sumall = true;
-		for ($i = 0; $i < count($this->value_columns); $i++) {			
-			if ($this->array_structure[$this->value_columns[$i]][$this->row_count-2] != table2array::TYPE_SUM_ALL) {
-				$sumall = false;
+		// if one or more value columns exist
+		if (count($this->value_columns) != 0) {
+			$sumall = true;
+			for ($i = 0; $i < count($this->value_columns); $i++) {			
+				if ($this->array_structure[$this->value_columns[$i]][$this->row_count-2] != table2array::TYPE_SUM_ALL) {
+					$sumall = false;
+				}
 			}
-		}
-		if ($sumall === true) {
-			array_pop($this->row_array); // delete last row
-			$this->row_count = $this->row_count-1;
+			if ($sumall === true) {
+				echo "delete last row<br><br>";
+				array_pop($this->row_array); // delete last row
+				$this->row_count = $this->row_count-1;
+			}
 		}
 		
 	// Is there at least one label and one value column
@@ -107,6 +111,7 @@ class chart extends table2array {
 				// country labels
 				if ($this->column_structure[$this->label_columns[0]] == table2array::TYPE_COUNTRY) {
 					$graph["type"] = "map";
+					$graph["val_type"] = table2array::TYPE_NUMBER;
 					$graph["label"] = $this->label_columns[0];
 					$graph["value"] = $this->value_columns[0]; 
 				} else {
@@ -254,6 +259,26 @@ class chart extends table2array {
 				}
 			}
 		}
+		
+		// two label columns and no value column
+		if (count($this->label_columns) == 2) {
+				// country labels
+				if (($this->column_structure[$this->label_columns[0]] == table2array::TYPE_COUNTRY) or ($this->column_structure[$this->label_columns[1]] == table2array::TYPE_COUNTRY)) {
+					$graph["type"] = "map";
+					$graph["val_type"] = table2array::TYPE_STRING;
+					if ($this->column_structure[$this->label_columns[0]] == table2array::TYPE_COUNTRY) {
+						$graph["label"] = $this->label_columns[0];
+						$graph["value"] = $this->label_columns[1]; 
+					} else {
+						$graph["label"] = $this->label_columns[1];
+						$graph["value"] = $this->label_columns[0]; 
+					}
+					
+					
+				}
+				
+				
+		}
 	}	
 		
 		
@@ -278,7 +303,7 @@ class chart extends table2array {
 				return array('lineDoubleY',$this->create_json_lineDoubleY($graph["label"],$graph["value"])); 
 				break;
 			case "map":
-				return array('map',$this->create_json_map($graph["label"],$graph["value"])); 
+				return array('map',$this->create_json_map($graph["label"],$graph["value"],$graph["val_type"])); 
 				break;
 		}
 	}
@@ -535,20 +560,36 @@ class chart extends table2array {
 	
 	}
 	
-	function create_json_map($label_col,$value_col) {
+	function create_json_map($label_col,$value_col,$val_type) {
+	
+	
 	
 		$labels = array();
 			for ($i = 0; $i < $this->row_count-1; $i++) {
 				$labels[] = $this->row_array[$i][$label_col];
 			}
 		$values = array();
+		if ($val_type == table2array::TYPE_NUMBER) {
 			for ($i = 0; $i < $this->row_count-1; $i++) {
 				$values[] = floatval($this->row_array[$i][$value_col]);
 			}	
+			$return = array("title"=>$value_col,"labels"=>$labels,"values"=>$values);
+		} else { // value column is a string column!
+			for ($i = 0; $i < $this->row_count-1; $i++) {
+				$values[] = $this->row_array[$i][$value_col];
+			}
+			$unique_values = array_unique($values);
 			
-
-		$return = array("title"=>$value_col,"labels"=>$labels,"values"=>$values);
-		
+			$rgb = Color::get_n_colors(count($unique_values));
+			
+			$colors = array();
+			$i = 0;
+			foreach($unique_values as $unique_value) {
+				$colors[] = array("value"=>$unique_value,"color"=>$rgb[$i]);
+				$i++;
+			}
+			$return = array("title"=>$value_col,"labels"=>$labels,"values"=>$values,"colors"=>$colors);
+		}
 		return json_encode($return);
 		
 		//return $return;		
