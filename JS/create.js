@@ -4,19 +4,21 @@ $(document).ready(function(){
 	function create_graph(table) {
 		var ctx = $("#ChartCanvas").get(0).getContext("2d");
 		ctx.clearRect ( 0 , 0 , 800 , 400 );
+		$("#mapChartCanvas").css("display","none");
+	    $("#ChartCanvas").css("display","none");
 	    $("#Legend").css("display","none");
 		$("#Legend").html('');
 		
 		$.post("getdata.php", {table: table,lang: lang}, function(json)  {
 			if (json) {	
 				if (json.data != "") { json.data = JSON.parse(json.data); } else {json.type = "none";}
-				if (json.type != "none" && json.type) { legend(json.type, json.data); }
+				if (json.type != "none" && json.type != "map" && json.type) {   $("#ChartCanvas").css("display","block"); legend(json.type, json.data); }
 				if (json.type != "none" && json.type) {
 					send_mail('true',table,json.type,json.data);
 				} else {
 					send_mail('false',table,json.type,json.data);
 				}
-				console.log(json);
+				
 				
 				var ctx = $("#ChartCanvas").get(0).getContext("2d");
 				switch(json.type) {
@@ -25,6 +27,11 @@ $(document).ready(function(){
 					case "pie": var myChart = new Chart(lang,ctx).Pie(json.data,{	datasetFill:false, bezierCurve : false}); break;
 					case "lineDoubleY": var myChart = new Chart(lang,ctx).LineDoubleY(json.data,{	datasetFill:false, bezierCurve : false}); break;
 					case "stackedbar": var myChart = new Chart(lang,ctx).StackedBar(json.data,{	datasetFill:false, bezierCurve : false}); break;
+					case "map":
+						$("#mapChartCanvas").css("display","block");
+						 $("#Legend").css("display","block");
+						var myMapChart = new MapChart("mapChartCanvasMap").Map(json.data,{ width:800, height:400, color_from: '#00ff00', color_to: '#ff0000', legend: "Legend" });
+						break;
 					default:
 						$("#ChartCanvas").css("display","block");
 						var ctx = $("#ChartCanvas").get(0).getContext("2d");

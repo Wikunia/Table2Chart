@@ -26,6 +26,10 @@
 		This is <b>open source</b> so everybody can improve this tool and of course use it for <b>free</b> (It's licensed under the <a href="http://opensource.org/licenses/MIT">MIT License</a>).<br>
 		To create charts I use <a href="http://chartjs.org">Chart.js</a> by <a href="http://nickdownie.com">Nick Downie</a>.<br>
 	</section>
+	<section id="new">
+		<b>Now it's possible to visualize your own html tables <a href="create.php">here</a>!</b><br>
+		<br>
+	</section>
 	<hr>
 	<section id="examples">
 		<article id="lineChart" >
