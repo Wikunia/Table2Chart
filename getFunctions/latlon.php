@@ -16,9 +16,6 @@
 	}
 	
 	$result = $db->query("select latitude,longitude from Countries where country_code = '$cc' limit 1") or die('Query failed 2');
-	if(!$cc) {
-		$result = $db->query("select latitude,longitude from Countries where country = '$c' limit 1") or die('Query failed 3');
-	}
 	while (list($lat,$lon) = $result->fetchArray())
 	{
 	 $arr = array ('lat'=>$lat,'lon'=>$lon);	

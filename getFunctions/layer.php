@@ -17,9 +17,6 @@
 	}
 	
 	$result = $db->query("select country_code,coordinates from Countries where country_code = '$cc' limit 1") or die('Query failed 2');
-	if(!$cc) {
-		$result = $db->query("select country_code,coordinates from Countries where country = '$c' limit 1") or die('Query failed 3');
-	}
 	while (list($cc,$coordinates) = $result->fetchArray())
 	{
 	 $arr = array ('cc'=>$cc,'coor'=>$coordinates);	
