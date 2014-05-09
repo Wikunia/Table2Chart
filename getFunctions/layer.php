@@ -2,7 +2,7 @@
 	require_once("../classes/sqlite.php");
 
 	
-	$db = new MyDB();
+	$db = new MyDB("../Countries.db");
 
 	$cc = SQLite3::escapeString($_GET['country_code']);
 	$c = SQLite3::escapeString($_GET['country']);

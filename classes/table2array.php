@@ -50,7 +50,6 @@
 		public $array_structure;
 		public $column_structure;
 		
-		public $multi_countries;
 		public $countries;
 		
 		//constants for value_types
@@ -75,13 +74,7 @@
 			Generates a country array ($this->countries)
 		*/
 		function get_countries() {
-			$this->countries = array();
-			$this->multi_countries = json_decode(file_get_contents('JSON/countries.json'),true);
-			foreach($this->multi_countries as $country) {
-				if ($country['country'] !== "") {
-					$this->countries[] = $country['country'];
-				}
-			}
+			$this->countries = json_decode(file_get_contents('JSON/countries.json'),true);
 		}
 		
 		/*  main function creates all arrays */
@@ -438,24 +431,12 @@
 						if ($this->array_structure[$this->column_titles[$i]][$j] != $column_structure) {
 							// year can be interpreted as a normal number
 							if ((($column_structure == self::TYPE_YEAR) and ($this->array_structure[$this->column_titles[$i]][$j] == self::TYPE_NUMBER)) or (($column_structure == self::TYPE_NUMBER) and ($this->array_structure[$this->column_titles[$i]][$j] == self::TYPE_YEAR))) {
-								if ($column_structure == self::TYPE_YEAR) { 
-									for ($r = 0; $r < $j; $r++) {
-										$this->array_structure[$this->column_titles[$i]][$r] = self::TYPE_NUMBER; 
-									}
-								}
-								if ($column_structure == self::TYPE_NUMBER) { $this->array_structure[$this->column_titles[$i]][$j] = self::TYPE_NUMBER; }
 								$column_structure = table2array::TYPE_NUMBER;	
 							}
 							else {
 								// month and country can be interpreted as a normal string
 								if (in_array($colum_structure,array(self::TYPE_MONTH,self::TYPE_STRING,self::TYPE_COUNTRY)) and
 									in_array($this->array_structure[$this->column_titles[$i]][$j],array(self::TYPE_MONTH,self::TYPE_STRING,self::TYPE_COUNTRY))) {
-									if (in_array($column_structure,array(self::TYPE_MONTH,self::TYPE_COUNTRY))) {
-										for ($r = 0; $r < $j; $r++) {
-										//	$this->array_structure[$this->column_titles[$i]][$r] = self::TYPE_STRING; 
-										}
-									}
-									if ($column_structure == self::TYPE_STRING) { $this->array_structure[$this->column_titles[$i]][$j] = self::TYPE_STRING; }
 									$column_structure = table2array::TYPE_STRING;	
 								} else {
 									$column_structure = "undefined";

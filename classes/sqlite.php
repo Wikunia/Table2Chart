@@ -2,8 +2,8 @@
 	// open database
 	class MyDB extends SQLite3
 	{
-		function __construct()
+		function __construct($file)
 		{
-			$this->open('../Countries.db');
+			$this->open($file);
 		}
 	}
