@@ -1,0 +1,11 @@
+fieldset {
+	width:100%;
+	padding:25px;
+	margin: 40px auto;
+	max-width: 900px;
+}
+
+fieldset legend {
+	font-size:40px;
+	text-align:center;
+}
