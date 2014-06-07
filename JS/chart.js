@@ -1802,6 +1802,7 @@ window.Chart = function(lang,context, options){
 		function drawLines(animPc){
 			var pointArray = [];
 			var pointRadius = config.pointDotRadius+config.pointDotStrokeWidth;
+			var zeroY = xAxisPosY - animPc*(calculateOffset(config,0,calculatedScale_Y1,scaleHop_Y1));
 			for (var n_scale = 1; n_scale<=2; n_scale++) {
 				pointArray[n_scale] = [];
 				var actual_dataset = eval('data.datasets_Y'+n_scale);
@@ -1881,6 +1882,10 @@ window.Chart = function(lang,context, options){
 									tempY = pointArray[1][j].y+stepsBetween*(pointArray[1][j+1].y-pointArray[1][j].y);
 									rainY += arid ? -HalfLine : HalfLine;
 									tempY += arid ? HalfLine : -HalfLine;
+								}
+								// no humidity lines under 0
+								if (tempY > zeroY) {
+									tempY = zeroY;	
 								}
 								ctx.beginPath();
 								ctx.moveTo(xPos(j+stepsBetween),tempY);
