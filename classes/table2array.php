@@ -94,6 +94,7 @@
 			$this->table = $table;
 			$this->lang = $lang;
 			
+			$this->removeComments();
 			$this->column_titles = $this->get_column_titles();
 			
 			$this->get_structured_array();
@@ -124,6 +125,13 @@
 			$this->column_structure = $this->get_column_structure();
 			
 			
+		}
+		
+		/**
+		 * Remove all comments
+		 */
+		function removeComments() {
+			$this->table = preg_replace('/<!--(.*?)-->/s','',$this->table);			
 		}
 		
 		/* Creating the column array */
