@@ -1,24 +1,24 @@
 
 $(document).ready(function(){
 	var lang = "en";
-	var bool_show_all = new Array({'pie':false},{'line':false},{'bar':false},{'stackedBar':false});
+	var bool_show_all = new Array({'pie':false},{'line':false},{'lineDoubleY':false},{'bar':false},{'stackedBar':false},{'map':false});
 
-	function create_graph(type,table,value_column) {
+	function create_graph(type,table,value_columns) {
 	
 		
-		if (value_column != "" && bool_show_all[type] === false) {
+		if (value_columns.length > 0 && bool_show_all[type] === false) {
 				var show_all = new Array();
 				show_all.push({title:"Show all"});	
 				legend(type+"Legend", show_all, false);
 				bool_show_all[type] = true;
-		}
-		
-		if (value_column == "Show all") {
-			value_column = "";
+		} 
+		if (value_columns.length == 0) {
 			bool_show_all[type] = false;
 		}
 		
-		$.post("getdata.php", {table: table,lang: lang,value: value_column}, function(json)  {
+			
+		console.log(JSON.stringify(value_columns));
+		$.post("getdata.php", {table: table,lang: lang,value: JSON.stringify(value_columns)}, function(json)  {
 			if (json) {	
 				
 				json.data = JSON.parse(json.data);
@@ -36,23 +36,23 @@ $(document).ready(function(){
 					case "line": 
 						var ctx = $("#lineChartCanvas").get(0).getContext("2d");
 						var myChart = new Chart(lang,ctx).Line(json.data,{	datasetFill:false, bezierCurve : false}); 
-						if (value_column == "" && bool_show_all[type] === false) { legend("lineLegend", json.data); }
+						if (value_columns.length == 0 && bool_show_all[type] === false) { legend("lineLegend", json.data); }
 						break;
 					case "lineDoubleY": 
 						var ctx = $("#lineDoubleYChartCanvas").get(0).getContext("2d");
 						var myChart = new Chart(lang,ctx).LineDoubleY(json.data,{	datasetFill:false, bezierCurve : false}); 
-						if (value_column == "" && bool_show_all[type] === false) { legend("lineDoubleYLegend", json.data); }
+						if (value_columns.length == 0 && bool_show_all[type] === false) { legend("lineDoubleYLegend", json.data); }
 						break;
 					case "bar": 
 						var ctx = $("#barChartCanvas").get(0).getContext("2d");
 						var myChart = new Chart(lang,ctx).Bar(json.data);
-						if (value_column == "" && bool_show_all[type] === false) { legend("barLegend", json.data); }
+						if (value_columns.length == 0 && bool_show_all[type] === false) { legend("barLegend", json.data); }
 						break;
 					case "stackedbar": 
 						$("#stackedBarChartCanvas").css("display","block");
 						var ctx = $("#stackedBarChartCanvas").get(0).getContext("2d");
 						var myChart = new Chart(lang,ctx).StackedBar(json.data, { scaleOverride: true, scaleSteps: 10, scaleStepWidth: 10, scaleStartValue: 0}); 
-						if (value_column == "" && bool_show_all[type] === false) { legend("stackedBarLegend", json.data); }
+						if (value_columns.length == 0 && bool_show_all[type] === false) { legend("stackedBarLegend", json.data); }
 						break;
 					case "map":
 						$("#map").css("display","block");
@@ -82,8 +82,11 @@ $(document).ready(function(){
 		},"json");	
 	}
 
-	
+	/**
+	 * Visualization || Show Table button
+	 */
 	$('.vis_it').live('click', function() {
+		// get the correct id (pie,line...)
 		var id = $(this).attr("id").substr(4);
 		if ($("#vis_"+id).text() == 'Visualize it!') {
 			$("#"+id+"Table").css("display","none");
@@ -93,7 +96,7 @@ $(document).ready(function(){
 			$("#"+id+"Legend").html("");
 			$.get("tables/"+id+".htm", function(data) {
 			}).success(function (data) {
-				create_graph(id,data,'');	
+				create_graph(id,data,[]);	
 				$('html, body').animate({
 				scrollTop: $("#"+id+"Chart").offset().top
 				}, 500);				
@@ -166,7 +169,19 @@ $(document).ready(function(){
 		if (type == "bar" || type == "stackedBar" || type == "line") {
 			$.get("tables/"+type+".htm", function(data) {
 			}).success(function (data) {
-				create_graph(type,data,title);	
+				var columns = $("#"+type+"ChartCanvas").data("columns");
+				if (!columns) { columns = []; }
+				var posInArray = columns.indexOf(title);
+				if (title == "Show all") { columns = []; }
+				else if (posInArray >= 0) { // delete from array
+					columns.splice(posInArray,1);
+				} else { // add to array
+					columns.push(title);
+				}
+				
+				$("#"+type+"ChartCanvas").data("columns", columns);
+				
+				create_graph(type,data,columns);	
 				$('html, body').animate({
 				scrollTop: $("#"+type+"Chart").offset().top
 				}, 500);				

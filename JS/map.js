@@ -13,7 +13,7 @@ $(function(){
                 options.range_amount = data.colors.length;
             } else {
                 if (!options.range_amount) { 
-                    options.range_amount = data.labels.length; 
+                    options.range_amount = get_range_amount(data); 
                 }
             }
             
@@ -37,7 +37,7 @@ $(function(){
 			// get variables like maximum and minimum and step value
             // if colors is not defined
             if (!data.colors) {
-			    var data_vars = get_data_vars(data.values);
+			    var data_vars = get_data_vars(data.values,range_amount);
             }
             
 			
@@ -134,7 +134,7 @@ $(function(){
 		}
 		
 		// get data like maximum, minimum,step,...
-		function get_data_vars(data) {
+		function get_data_vars(data,range_amount) {
 			// get min and max
 			var range = min_max(data);	
 			var step = Math.ceil((range.max-range.min)/range_amount).toPrecision(2);
@@ -216,14 +216,13 @@ $(function(){
 		
 		// create legend
 		function create_legend(id,data_vars,color,colors,title) {
-			console.log(data_vars.min+data_vars.step);
 			var i = 1;
 			var labels = new Array();
             // if title is set in index.js
             if (title) {
                 // create span for charttitle
                 var title_span = document.createElement('span'); 
-                title_span.className = 'title';
+                title_span.className = 'legend_title';
                 $("#"+id).append(title_span);
                 // set title text
                 var title_text = document.createTextNode(title);
@@ -257,6 +256,46 @@ $(function(){
 				i++;
 			}
 			$("#"+id).css("display","block");
+		}
+		
+		function get_range_amount(data) {
+			var amounts = [];
+			for (var i = 3; i <= 10; i++) {
+				var data_vars = get_data_vars(data.values,i);
+				var amount = [];
+				for (var j = 0; j < i; j++) {
+					amount[j] = 0;
+					$.each(data.values, function(index,value) {
+						if (value > (data_vars.min+data_vars.step*j) && value < (data_vars.min+data_vars.step*(j+1))) {
+							amount[j]++;
+						}
+					})
+				}
+				amounts[i] = amount;
+			}
+			
+			return get_best_distribution(amounts);
+			
+		}
+		
+		function get_best_distribution(distributions) {
+			var best = 1,
+				best_nr;
+			for(var d = 3; d <= 10; d++) {
+				var value = distributions[d];
+				var len = value.length;
+				var total = 0;
+				for (var i = 0; i < value.length; i++) {
+					total += value[i]*i;
+				}
+				var medium = total/value.length;
+				var dis2med = 1/2-medium/len;
+				if (dis2med < best) {
+					best = dis2med;
+					best_nr = d;
+				}
+			}
+			return best_nr;
 		}
 		
 		function OrderOfMagnitude(val) {
