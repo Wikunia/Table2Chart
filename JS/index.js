@@ -1,7 +1,8 @@
 
 $(document).ready(function(){
 	var lang = "en";
-	var bool_show_all = new Array({'pie':false},{'line':false},{'lineDoubleY':false},{'bar':false},{'stackedBar':false},{'map':false});
+	var bool_show_all = new Array({'pie':false},{'line':false},{'climate':false},
+								  {'lineDoubleY':false},{'bar':false},{'stackedBar':false},{'map':false});
 
 	function create_graph(type,table,value_columns) {
 	
@@ -42,6 +43,11 @@ $(document).ready(function(){
 						var ctx = $("#lineDoubleYChartCanvas").get(0).getContext("2d");
 						var myChart = new Chart(lang,ctx).LineDoubleY(json.data,{	datasetFill:false, bezierCurve : false}); 
 						if (value_columns.length == 0 && bool_show_all[type] === false) { legend("lineDoubleYLegend", json.data); }
+						break;
+					case "climate": 
+						var ctx = $("#climateChartCanvas").get(0).getContext("2d");
+						var myChart = new Chart(lang,ctx).LineDoubleY(json.data,{	climate: true, datasetFill:true, bezierCurve : false}); 
+						if (value_columns.length == 0 && bool_show_all[type] === false) { legend("climateLegend", json.data); }
 						break;
 					case "bar": 
 						var ctx = $("#barChartCanvas").get(0).getContext("2d");
@@ -136,7 +142,7 @@ $(document).ready(function(){
 		if (del === true) {
 			$("#"+type).html('');
 		}
-		if (type == "lineDoubleYLegend") {
+		if (type == "lineDoubleYLegend" || type == "climateLegend") {
 			for (var i = 1; i <= 2; i++) {
 				var title = document.createElement('span');
 				title.className = 'title';

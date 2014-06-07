@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /*
 * This class generates chart data for Chart.js
 * 
@@ -299,6 +299,9 @@ class chart extends table2array {
 			case "stackedbar":
 				return array('stackedbar',$this->create_json_stackedbar($graph["label"],$graph["value"],$graph["label_value"])); 
 				break;
+			case "climate":
+				return array('climate',$this->create_json_lineDoubleY($graph["label"],$graph["value"])); 
+				break;
 			case "lineDoubleY":
 				return array('lineDoubleY',$this->create_json_lineDoubleY($graph["label"],$graph["value"])); 
 				break;
@@ -323,9 +326,25 @@ class chart extends table2array {
 					if (count($this->value_columns) == 2) {
 						$unit_1 = $this->get_value_unit($this->value_columns[0]);
 						$unit_2 = $this->get_value_unit($this->value_columns[1]);
+						$temperatureUnits = array('C','°C','&deg;C','&deg; C','°F','F','&deg;F','&deg; F','Celsius','Fahrenheit');
+						$rainfallUnits = array('mm');
 						if (($unit_1 != "") and ($unit_1 != $unit_2)) { // not the same and unempty unit
-							$graph["type"] = "lineDoubleY";
+							if ((in_array($unit_1,$temperatureUnits) and in_array($unit_2,$rainfallUnits))
+							   or (in_array($unit_2,$temperatureUnits) and in_array($unit_1,$rainfallUnits))) {
+								$graph["type"] = "climate";
+							} else {
+							  $graph["type"] = "lineDoubleY"; 
+							}
 							$graph["label"] = $this->label_columns[$i];
+							// switch the temperature to unit_1 and rainfall to unit_2
+							if (in_array($unit_2,$temperatureUnits) and in_array($unit_1,$rainfallUnits)) {
+								$rainCol = $this->value_columns[0];
+								$rainUnit = $unit_1;
+								$this->value_columns[0] = $this->value_columns[1];
+								$unit_1 = $unit_2;
+								$this->value_columns[1] = $rainCol;
+								$unit_2 = $rainUnit;	
+							}
 							$graph["value"] = $this->value_columns;
 						}
 					}

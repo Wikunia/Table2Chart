@@ -562,18 +562,18 @@ window.Chart = function(lang,context, options){
 			scaleShowGridLines : true,
 			scaleGridLineColor : "rgba(0,0,0,.05)",
 			scaleGridLineWidth : 1,
-			bezierCurve : false,
 			pointDot : true,
 			pointDotRadius : 4,
 			pointDotStrokeWidth : 2,
 			datasetStroke : true,
 			datasetStrokeWidth : 2,
 			datasetFill : true,
-			animation :true,
+			animation :false,
 			animationSteps : 60,
 			animationEasing : "easeOutQuart",
 			onAnimationComplete : null,
-			showTooltips : true
+			showTooltips : true,
+			climate: false
 		};		
 		var config = (options) ? mergeChartConfig(chart.Line.defaults,options) : chart.Line.defaults;
 		
@@ -1742,7 +1742,7 @@ window.Chart = function(lang,context, options){
 
 	}
 
-		var LineDoubleY = function(data,config,ctx){
+	var LineDoubleY = function(data,config,ctx){
 		var maxSize, scaleHop_Y1, scaleHop_Y2, calculatedScale, calculatedScale_Y1, calculatedScale_Y2 , distance_Y2, labelHeight, scaleHeight, valueBounds, labelTemplateString, valueHop,widestXLabel, xAxisLength,yAxisPosX,xAxisPosY, rotateLabels = 0;
 			
 		calculateDrawingSizes();
@@ -1754,51 +1754,42 @@ window.Chart = function(lang,context, options){
 		//Check and set the scale
 		labelTemplateString = (config.scaleShowLabels)? config.scaleLabel : "";
 	
-		if (valueBounds.minValue_Y2 > 0) {
-			valueBounds.minValue_Y2 = 0;
-		}
-		if (valueBounds.minValue_Y1 > 0) {
-			valueBounds.minValue_Y1 = 0;
-		}
-		
-		
-		if (!config.Y1_scaleOverride) {	
-				calculatedScale_Y1 = calculateScale(config,scaleHeight,valueBounds.maxSteps,valueBounds.minSteps,valueBounds.maxValue_Y1,valueBounds.minValue_Y1,labelTemplateString);
-		}
-		else {
-			if (config.Y1_scaleSteps == null) {
-				config.Y1_scaleSteps = Math.ceil((valueBounds.maxValue_Y1-config.Y1_scaleStartValue)/config.Y1_scaleStepWidth);
+		if (config.climate) {
+			// minimum value should be <= 0	
+			if (valueBounds.minValue_Y2 > 0) {
+				valueBounds.minValue_Y2 = 0;
 			}
-			calculatedScale_Y1 = {
-				steps : config.Y1_scaleSteps,
-				stepValue : config.Y1_scaleStepWidth,
-				graphMin : config.Y1_scaleStartValue,
-				labels : []
+			if (valueBounds.minValue_Y1 > 0) {
+				valueBounds.minValue_Y1 = 0;
 			}
-			populateLabels(config,labelTemplateString, calculatedScale_Y1.labels,calculatedScale_Y1.steps,config.Y1_scaleStepWidth,config.Y1_scaleStartValue);
-		}
 		
-		if (!config.Y2_scaleOverride) {	
-				calculatedScale_Y2 = calculateScale(config,scaleHeight,valueBounds.maxSteps,valueBounds.minSteps,valueBounds.maxValue_Y2,valueBounds.minValue_Y2,labelTemplateString);
-		}
-		else {
-			if (config.Y2_scaleSteps == null) {
-				config.Y2_scaleSteps = Math.ceil((valueBounds.maxValue_Y2-config.Y2_scaleStartValue)/config.Y2_scaleStepWidth);
+			
+			/**
+			 *  get the maximum value (2* °C is mm)
+			 *  so 20°C maximum is 40mm => maximum = 40
+			 */
+			if (valueBounds.maxValue_Y1*2 < valueBounds.maxValue_Y2) {
+				valueBounds.maxValue_Y1 = valueBounds.maxValue_Y2/2;
 			}
-			calculatedScale_Y2 = {
-				steps : config.Y2_scaleSteps,
-				stepValue : config.Y2_scaleStepWidth,
-				graphMin : config.Y2_scaleStartValue,
-				labels : []
-			}
-			populateLabels(config,labelTemplateString, calculatedScale_Y2.labels,calculatedScale_Y2.steps,config.Y2_scaleStepWidth,config.Y2_scaleStartValue);
 		}
 		
 		
-		if (calculatedScale_Y1.graphMin < 0 && calculatedScale_Y1.graphMin < calculatedScale_Y2.graphMin) {
-			calculatedScale_Y2 = calcDoubleY2Scale(config,calculatedScale_Y1,calculatedScale_Y2,scaleHeight,valueBounds.maxSteps,valueBounds.minSteps,valueBounds.maxValue_Y2,valueBounds.minValue_Y2,labelTemplateString);
-		}
+		calculatedScale_Y1 = calculateScale(config,scaleHeight,valueBounds.maxSteps,
+												valueBounds.minSteps,valueBounds.maxValue_Y1,
+												valueBounds.minValue_Y1,labelTemplateString);
 		
+		
+		calculatedScale_Y2 = calculateScale(config,scaleHeight,valueBounds.maxSteps,
+													valueBounds.minSteps,valueBounds.maxValue_Y2,valueBounds.minValue_Y2,labelTemplateString);
+		
+		
+		if (config.climate) {
+			// climate diagramm scale => mm starts at 0 where °C is zero!
+			// mm is two times the °C
+			calculatedScale_Y2 = climateScaleY2(config,calculatedScale_Y1,calculatedScale_Y2,
+												   scaleHeight,valueBounds.maxSteps,valueBounds.minSteps,valueBounds.maxValue_Y2,
+												   valueBounds.minValue_Y2,labelTemplateString);
+		}
 		
 		calculatedScale = calculatedScale_Y1; // it is only important for x-Axis
 		
@@ -1809,7 +1800,10 @@ window.Chart = function(lang,context, options){
 		animationLoop(config,drawScale,drawLines,ctx);		
 		
 		function drawLines(animPc){
+			var pointArray = [];
+			var pointRadius = config.pointDotRadius+config.pointDotStrokeWidth;
 			for (var n_scale = 1; n_scale<=2; n_scale++) {
+				pointArray[n_scale] = [];
 				var actual_dataset = eval('data.datasets_Y'+n_scale);
 				var actual_scaleHop = eval('scaleHop_Y'+n_scale);
 				var actual_calculatedScale = eval('calculatedScale_Y'+n_scale);
@@ -1817,43 +1811,91 @@ window.Chart = function(lang,context, options){
 					ctx.strokeStyle = actual_dataset[i].strokeColor;
 					ctx.lineWidth = config.datasetStrokeWidth;
 					ctx.beginPath();
-					ctx.moveTo(yAxisPosX, xAxisPosY - animPc*(calculateOffset(config,actual_dataset[i].data[0],actual_calculatedScale,actual_scaleHop)));
+					ctx.moveTo(yAxisPosX, xAxisPosY - animPc*(calculateOffset(config,actual_dataset[i].data[0],
+																			  actual_calculatedScale,actual_scaleHop)));
+					
+					pointArray[n_scale][0] = {'x':yAxisPosX,'y':xAxisPosY - animPc*(calculateOffset(config,actual_dataset[i].data[0],
+																			  actual_calculatedScale,actual_scaleHop))};
 					for (var j=1; j<actual_dataset[i].data.length; j++){
-						if (config.bezierCurve){
-							ctx.bezierCurveTo(xPos(j-0.5),yPos(i,j-1),xPos(j-0.5),yPos(i,j),xPos(j),yPos(i,j));
-						}
-						else{
-							ctx.lineTo(xPos(j),yPos(i,j));
-						}
+						ctx.lineTo(xPos(j),yPos(i,j));
+						
+						pointArray[n_scale][j] = {'x':xPos(j),'y':yPos(i,j)};
+						
 					}
 					ctx.stroke();
-					if (config.datasetFill){
+					if (config.datasetFill && !config.climate){
 						ctx.lineTo(yAxisPosX + (valueHop*(actual_dataset[i].data.length-1)),xAxisPosY);
 						ctx.lineTo(yAxisPosX,xAxisPosY);
 						ctx.closePath();
 						ctx.fillStyle = actual_dataset[i].fillColor;
 						ctx.fill();
 					}
-					else{
+					else {
 						ctx.closePath();
 					}
-					var pointRadius = config.pointDotRadius+config.pointDotStrokeWidth;
+					
 					if(config.pointDot){
 						ctx.fillStyle = actual_dataset[i].pointColor;
 						ctx.strokeStyle = actual_dataset[i].pointStrokeColor;
 						ctx.lineWidth = config.pointDotStrokeWidth;
 						for (var k=0; k<actual_dataset[i].data.length; k++){
 							ctx.beginPath();
-							ctx.arc(yAxisPosX + (valueHop *k),xAxisPosY - animPc*(calculateOffset(config,actual_dataset[i].data[k],actual_calculatedScale,actual_scaleHop)),config.pointDotRadius,0,Math.PI*2,true);
+							ctx.arc(yAxisPosX + (valueHop *k),xAxisPosY - animPc*(calculateOffset(config,actual_dataset[i].data[k],
+																								  actual_calculatedScale,actual_scaleHop)),
+									config.pointDotRadius,0,Math.PI*2,true);
 							if(animPc >= 1 && config.showTooltips) {
-								registerTooltip(ctx,{type:'circle',x:xPos(k),y:yPos(i,k),r:pointRadius},{label:data.labels[k],value:actual_dataset[i].data[k]},'LineDoubleY');
+								registerTooltip(ctx,{type:'circle',x:xPos(k),y:yPos(i,k),r:pointRadius},
+												{label:data.labels[k],value:actual_dataset[i].data[k]},'LineDoubleY');
 							}
 							ctx.fill();
 							ctx.stroke();
 						}
 					}
+					
+					if (n_scale == 2 && config.datasetFill && config.climate){
+						var numberOfLines = Math.floor(xAxisLength/(2*(pointRadius+config.datasetStrokeWidth)));
+						var numberOfValues = data.datasets_Y1[i].data.length;
+						// lines between two points
+						var linesPerPart = Math.floor(numberOfLines/numberOfValues);
+						// all lines
+						var numberOfLines = linesPerPart*numberOfValues;
+						
+						var j,arid,stepsBetween,rainY,tempY,HalfLine = config.datasetStrokeWidth/2;
+						
+						for (var l=1; l < numberOfLines; l++) {	
+							j = Math.floor(l/linesPerPart);
+							stepsBetween = l/linesPerPart-j;
+							if (j+1 < numberOfValues) {
+								// true if rainfall < temperature
+								arid =  pointArray[2][j].y+stepsBetween*(pointArray[2][j+1].y-pointArray[2][j].y) >
+										pointArray[1][j].y+stepsBetween*(pointArray[1][j+1].y-pointArray[1][j].y);
+							
+								// if the climate is arid => red else blue
+								ctx.strokeStyle = arid ? data.datasets_Y1[i].strokeColor : data.datasets_Y2[i].strokeColor;
+								
+								if (stepsBetween == 0) {
+									rainY = arid ? pointArray[2][j].y-pointRadius : pointArray[2][j].y+pointRadius;
+									tempY = arid ? pointArray[1][j].y+pointRadius : pointArray[1][j].y-pointRadius;
+								} else {
+									rainY = pointArray[2][j].y+stepsBetween*(pointArray[2][j+1].y-pointArray[2][j].y);
+									tempY = pointArray[1][j].y+stepsBetween*(pointArray[1][j+1].y-pointArray[1][j].y);
+									rainY += arid ? -HalfLine : HalfLine;
+									tempY += arid ? HalfLine : -HalfLine;
+								}
+								ctx.beginPath();
+								ctx.moveTo(xPos(j+stepsBetween),tempY);
+								ctx.lineTo(xPos(j+stepsBetween),rainY);
+								ctx.closePath();
+								ctx.stroke();
+							}
+						}
+
+						
+					}
 				}
 			
+				
+				
 			}
 			function yPos(dataSet,iteration){	
 				return xAxisPosY - animPc*(calculateOffset(config,actual_dataset[dataSet].data[iteration],actual_calculatedScale,actual_scaleHop));			
@@ -1929,7 +1971,7 @@ window.Chart = function(lang,context, options){
 				var actual_calculatedScale = eval('calculatedScale_Y'+n_scale);
 				var actual_scaleHop = eval('scaleHop_Y'+n_scale);
 				var actual_dataset = eval('data.datasets_Y'+n_scale);
-				for (var j=0; j<actual_calculatedScale.steps; j++){
+					for (var j=0; j<actual_calculatedScale.steps; j++){
 					ctx.beginPath();
 					if (n_scale == 1) {
 						ctx.moveTo(yAxisPosX-3,xAxisPosY - ((j+1) * actual_scaleHop));
@@ -1956,8 +1998,10 @@ window.Chart = function(lang,context, options){
 						if (n_scale == 1) {
 							ctx.fillText(thousand_separator(actual_calculatedScale.labels[j]),yAxisPosX-8,xAxisPosY - ((j+1) * actual_scaleHop));
 						} else {
-							if ((valueBounds.minValue_Y2 == 0 && actual_calculatedScale.labels[j] >= 0) || valueBounds.minValue_Y2 < 0) {//maximum of minValue is 0!
-								ctx.fillText(thousand_separator(actual_calculatedScale.labels[j]),yAxisPosX+xAxisLength+distance_Y2+8,xAxisPosY - ((j+1) * actual_scaleHop));
+							// if this is a climate diagram start mm with 0
+							if ((config.climate && actual_calculatedScale.labels[j] >= 0) || !config.climate) {
+								ctx.fillText(thousand_separator(actual_calculatedScale.labels[j]),
+											 yAxisPosX+xAxisLength+distance_Y2+8,xAxisPosY - ((j+1) * actual_scaleHop));
 							}
 						}
 					}
@@ -2786,7 +2830,7 @@ window.Chart = function(lang,context, options){
 	}
 	
 	
-	function calcDoubleY2Scale(config,ScaleY1,ScaleY2,drawingHeight,maxSteps,minSteps,maxValue,minValue,labelTemplateString) {
+	function climateScaleY2(config,ScaleY1,ScaleY2,drawingHeight,maxSteps,minSteps,maxValue,minValue,labelTemplateString) {
 		var numberOfSteps,zero_Y1;
 		numberOfSteps = ScaleY1.steps;
 		$.each(ScaleY1.labels, function( index, value ) {
@@ -2796,25 +2840,22 @@ window.Chart = function(lang,context, options){
 		  }
 		});
 		
-		if (ScaleY2.steps+zero_Y1+1 > numberOfSteps) {
-			while ((numberOfSteps-zero_Y1-1)*ScaleY2.stepValue < ScaleY2.graphMax) {
-				ScaleY2.stepValue *= 2;
-			}
-		}
+		ScaleY2.stepValue = ScaleY1.stepValue*2;
 		
 		var labels = [];
 		
-			ScaleY2.graphMin = ScaleY2.graphMin-(zero_Y1+1)*ScaleY2.stepValue;
-			populateLabels(config,labelTemplateString, labels, numberOfSteps, ScaleY2.graphMin, ScaleY2.graphMax, ScaleY2.stepValue);
-			
-			return {
-				steps : numberOfSteps,
-				stepValue : ScaleY2.stepValue,
-				graphMin : ScaleY2.graphMin,
-				graphMax : ScaleY2.graphMax,
-				labels : labels,
-				maxValue: maxValue
-			}
+		ScaleY2.graphMin = ScaleY2.graphMin-(zero_Y1+1)*ScaleY2.stepValue;
+		ScaleY2.graphMax = ScaleY2.graphMin+numberOfSteps*ScaleY2.stepValue;
+		populateLabels(config,labelTemplateString, labels, numberOfSteps, ScaleY2.graphMin, ScaleY2.graphMax, ScaleY2.stepValue);
+
+		return {
+			steps : numberOfSteps,
+			stepValue : ScaleY2.stepValue,
+			graphMin : ScaleY2.graphMin,
+			graphMax : ScaleY2.graphMax,
+			labels : labels,
+			maxValue: maxValue
+		}
 		
 		
 	}

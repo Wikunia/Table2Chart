@@ -20,7 +20,7 @@
 		<h1>Table2Chart</h1>
 		<h2>PHP/JS tool which visualizes tables</h2>
 	</header>
-	<a href="https://github.com/Wikunia"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
+	<a href="https://github.com/Wikunia/Table2Chart"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
 	<section id="doc">
 		This tool visualizes tables automatically by creating a structured table array. It decides which chart type is the best choice.<br>
 		This is <b>open source</b> so everybody can improve this tool and of course use it for <b>free</b> (It's licensed under the <a href="http://opensource.org/licenses/MIT">MIT License</a>).<br>
@@ -32,7 +32,7 @@
 	</section>
 	<hr>
 	<section id="examples">
-		<article id="lineChart" >
+		<article id="lineChart">
 			<div class="left"> 
 				<h2>Line charts</h2>
 				<p>Tables with a date based column are interpreted as line charts.</p><br>
@@ -59,7 +59,34 @@
 
 		<hr>
 		
-		<article id="lineDoubleYChart" >
+		<article id="climateChart" >
+			<div class="left"> 
+				<h2>Line double y-axis charts (climate chart)</h2>
+				<p>Tables with a date based column and two value columns with different units are interpreted as line charts.</p><br>
+				<b>Required</b>
+				<ul>
+					<li>one date column</li>
+					<li>two value columns (°C or °F) and mm</li>
+				</ul>
+				<div id="climateLegend" class="legend">
+					
+				</div>
+			</div>
+			<div class="canvasWrapper">
+				<canvas id="climateChartCanvas" class="chart" width="800" height="400"></canvas>
+				<div id="climateTable" class="table">
+				<?php
+					include('tables/climate.htm');
+				?>
+				</div>
+			</div>
+			<div class="clearleft">
+			<br><div id="vis_climate" class="button vis_it">Visualize it!</div><div id="save_lineDoubleY" class="button save">Save as png</div><div class="clearleft"></div>
+		</article>
+		
+		<hr>
+		
+		<!--<article id="lineDoubleYChart" >
 			<div class="left"> 
 				<h2>Line double y-axis charts</h2>
 				<p>Tables with a date based column and two value columns with different units are interpreted as line charts.</p><br>
@@ -84,7 +111,7 @@
 			<br><div id="vis_lineDoubleY" class="button vis_it">Visualize it!</div><div id="save_lineDoubleY" class="button save">Save as png</div><div class="clearleft"></div>
 		</article>
 		
-		<hr>
+		<hr>-->
 		
 		<article id="barChart" >
 			<div class="left">
