@@ -1763,6 +1763,9 @@ window.Chart = function(lang,context, options){
 				valueBounds.minValue_Y1 = 0;
 			}
 		
+			if (config.climate) {
+				var maxTemperature = valueBounds.maxValue_Y1;
+			}
 			
 			/**
 			 *  get the maximum value (2* °C is mm)
@@ -1771,6 +1774,7 @@ window.Chart = function(lang,context, options){
 			if (valueBounds.maxValue_Y1*2 < valueBounds.maxValue_Y2) {
 				valueBounds.maxValue_Y1 = valueBounds.maxValue_Y2/2;
 			}
+			
 		}
 		
 		
@@ -2002,6 +2006,9 @@ window.Chart = function(lang,context, options){
 						ctx.fillStyle = actual_dataset[0].strokeColor;
 						if (n_scale == 1) {
 							ctx.fillText(thousand_separator(actual_calculatedScale.labels[j]),yAxisPosX-8,xAxisPosY - ((j+1) * actual_scaleHop));
+							if (parseInt(actual_calculatedScale.labels[j]) > maxTemperature) {
+								break; // go to n_scale = 2	
+							}
 						} else {
 							// if this is a climate diagram start mm with 0
 							if ((config.climate && actual_calculatedScale.labels[j] >= 0) || !config.climate) {
