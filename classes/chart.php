@@ -23,6 +23,8 @@
 	
 class chart extends table2array {		
 		
+		public $console;
+	
 		private $json;
 		
 		private $value_columns;
@@ -160,14 +162,18 @@ class chart extends table2array {
 			if (($checksum/count($this->value_columns))==table2array::TYPE_PERCENTAGE) { // all percentage				
 				// row based
 				$row_based_hundred = true;
+				$this->console[] = array(165,"row_based_hundred = true");
 				for ($y = 0; $y < $this->row_count-1; $y++) {
 					$sum_row[$y] = 0;
 					for ($x = 0; $x < count($this->value_columns); $x++) {
 						$sum_row[$y] = $sum_row[$y] + $this->row_array[$y][$this->value_columns[$x]];
 					}
+					$this->console[] = array(170,$sum_row[$y]);
 					if (round($sum_row[$y],2) != 100) {
 						$row_based_hundred = false;
+						$this->console[] = array(174,"row_based_hundred = false");
 					}
+					
 				}
 				
 					// can't be pie chart 
@@ -326,6 +332,7 @@ class chart extends table2array {
 					if (count($this->value_columns) == 2) {
 						$unit_1 = $this->get_value_unit($this->value_columns[0]);
 						$unit_2 = $this->get_value_unit($this->value_columns[1]);
+						
 						$temperatureUnits = array('C','°C','&deg;C','&deg; C','°F','F','&deg;F','&deg; F','Celsius','Fahrenheit');
 						$rainfallUnits = array('mm');
 						if (($unit_1 != "") and ($unit_1 != $unit_2)) { // not the same and unempty unit
