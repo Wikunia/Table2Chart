@@ -568,7 +568,7 @@ window.Chart = function(lang,context, options){
 			datasetStroke : true,
 			datasetStrokeWidth : 2,
 			datasetFill : true,
-			animation :false,
+			animation :true,
 			animationSteps : 60,
 			animationEasing : "easeOutQuart",
 			onAnimationComplete : null,
@@ -658,7 +658,7 @@ window.Chart = function(lang,context, options){
 
 		calculateDrawingSizes();
 
-		valueBounds = getValueBounds();
+		valueBounds = getValueBounds(data,scaleHeight,labelHeight,"PolarArea");
 
 		labelTemplateString = (config.scaleShowLabels)? config.scaleLabel : null;
 
@@ -779,26 +779,6 @@ window.Chart = function(lang,context, options){
 				startAngle += rotateAnimation*angleStep;
 			}
 		}
-		function getValueBounds() {
-			var upperValue = Number.MIN_VALUE;
-			var lowerValue = Number.MAX_VALUE;
-			for (var i=0; i<data.length; i++){
-				if (data[i].value > upperValue) {upperValue = data[i].value;}
-				if (data[i].value < lowerValue) {lowerValue = data[i].value;}
-			};
-
-			var maxSteps = Math.floor((scaleHeight / (labelHeight*0.66)));
-			var minSteps = Math.floor((scaleHeight / labelHeight*0.5));
-
-			return {
-				maxValue : upperValue,
-				minValue : lowerValue,
-				maxSteps : maxSteps,
-				minSteps : minSteps
-			};
-
-
-		}
 	}
 
 	var Radar = function (data,config,ctx) {
@@ -809,7 +789,7 @@ window.Chart = function(lang,context, options){
 
 		calculateDrawingSizes();
 
-		var valueBounds = getValueBounds();
+		valueBounds = getValueBounds(data,scaleHeight,labelHeight,"Radar");
 
 		labelTemplateString = (config.scaleShowLabels)? config.scaleLabel : null;
 
@@ -995,29 +975,7 @@ window.Chart = function(lang,context, options){
 			//If the label height is less than 5, set it to 5 so we don't have lines on top of each other.
 			labelHeight = Default(labelHeight,5);
 		};
-		function getValueBounds() {
-			var upperValue = Number.MIN_VALUE;
-			var lowerValue = Number.MAX_VALUE;
-
-			for (var i=0; i<data.datasets.length; i++){
-				for (var j=0; j<data.datasets[i].data.length; j++){
-					if (data.datasets[i].data[j] > upperValue){upperValue = data.datasets[i].data[j]}
-					if (data.datasets[i].data[j] < lowerValue){lowerValue = data.datasets[i].data[j]}
-				}
-			}
-
-			var maxSteps = Math.floor((scaleHeight / (labelHeight*0.66)));
-			var minSteps = Math.floor((scaleHeight / labelHeight*0.5));
-
-			return {
-				maxValue : upperValue,
-				minValue : lowerValue,
-				maxSteps : maxSteps,
-				minSteps : minSteps
-			};
-
-
-		}
+		
 	}
 
 	var Pie = function(data,config,ctx){
@@ -1195,7 +1153,7 @@ window.Chart = function(lang,context, options){
 		
 		calculateDrawingSizes();
 		
-		valueBounds = getValueBounds();
+		valueBounds = getValueBounds(data,scaleHeight,labelHeight,"Line");
 		
 		// true or fuzzy (error for negativ values (included 0))
 		if (config.logarithmic !== false) {
@@ -1716,30 +1674,6 @@ window.Chart = function(lang,context, options){
 			//Then get the area above we can safely draw on.
 
 		}		
-		function getValueBounds() {
-			var upperValue = Number.MIN_VALUE;
-			var lowerValue = Number.MAX_VALUE;
-			for (var i=0; i<data.datasets.length; i++){
-				for (var j=0; j<data.datasets[i].data.length; j++){
-					if ( data.datasets[i].data[j] > upperValue) { upperValue = data.datasets[i].data[j] };
-					if ( data.datasets[i].data[j] < lowerValue) { lowerValue = data.datasets[i].data[j] };
-				}
-			};
-
-			var maxSteps = Math.floor((scaleHeight / (labelHeight*0.66)));
-			var minSteps = Math.floor((scaleHeight / labelHeight*0.5));
-
-			return {
-				maxValue : upperValue,
-				minValue : lowerValue,
-				maxSteps : maxSteps,
-				minSteps : minSteps
-			};
-
-
-		}
-
-
 	}
 
 	var LineDoubleY = function(data,config,ctx){
@@ -1747,7 +1681,7 @@ window.Chart = function(lang,context, options){
 			
 		calculateDrawingSizes();
 		
-		valueBounds = getValueBounds();
+		valueBounds = getValueBounds(data,scaleHeight,labelHeight,"LineDoubleY");
 		
 		
 		
@@ -2089,40 +2023,7 @@ window.Chart = function(lang,context, options){
 			//Then get the area above we can safely draw on.
 			
 		}		
-		function getValueBounds() {
-			var upperValue_Y1 = Number.MIN_VALUE;
-			var lowerValue_Y1 = Number.MAX_VALUE;
-			var upperValue_Y2 = Number.MIN_VALUE;
-			var lowerValue_Y2 = Number.MAX_VALUE;
-			for (var i=0; i<data.datasets_Y1.length; i++){
-				for (var j=0; j<data.datasets_Y1[i].data.length; j++){
-					if ( data.datasets_Y1[i].data[j] > upperValue_Y1) { upperValue_Y1 = data.datasets_Y1[i].data[j] };
-					if ( data.datasets_Y1[i].data[j] < lowerValue_Y1) { lowerValue_Y1 = data.datasets_Y1[i].data[j] };
-				}
-			};
-			
-			// second Y-axis
-			for (var i=0; i<data.datasets_Y2.length; i++){
-				for (var j=0; j<data.datasets_Y2[i].data.length; j++){
-					if ( data.datasets_Y2[i].data[j] > upperValue_Y2) { upperValue_Y2 = data.datasets_Y2[i].data[j] };
-					if ( data.datasets_Y2[i].data[j] < lowerValue_Y2) { lowerValue_Y2 = data.datasets_Y2[i].data[j] };
-				}
-			};
-	
-			var maxSteps = Math.floor((scaleHeight / (labelHeight*0.66)));
-			var minSteps = Math.floor((scaleHeight / labelHeight*0.5));
-			
-			return {
-				maxValue_Y1 : upperValue_Y1,
-				minValue_Y1 : lowerValue_Y1,
-				maxValue_Y2 : upperValue_Y2,
-				minValue_Y2 : lowerValue_Y2,
-				maxSteps : maxSteps,
-				minSteps : minSteps
-			};
-			
-	
-		}
+		
 
 		
 	}
@@ -2133,7 +2034,8 @@ window.Chart = function(lang,context, options){
       
     calculateDrawingSizes();
     
-    valueBounds = getValueBounds();
+    valueBounds = getValueBounds(data,scaleHeight,labelHeight,"StackedBar");
+		
     //Check and set the scale
     labelTemplateString = (config.scaleShowLabels)? config.scaleLabel : "";
     if (!config.scaleOverride){
@@ -2390,34 +2292,6 @@ window.Chart = function(lang,context, options){
       //Then get the area above we can safely draw on.
       
     }    
-    function getValueBounds() {
-      var upperValue = Number.MIN_VALUE;
-      var lowerValue = Number.MAX_VALUE;
-      for (var i=0; i<data.datasets.length; i++){
-        for (var j=0; j<data.datasets[i].data.length; j++){
-          var k = i;
-          var temp = data.datasets[0].data[j];
-          while ( k > 0 ){ //get max of stacked data
-            temp += data.datasets[k].data[j];
-            k--;
-          }
-          if ( temp > upperValue) { upperValue = temp; };
-          if ( temp < lowerValue) { lowerValue = temp; };
-        }
-      };
-      
-      var maxSteps = Math.floor((scaleHeight / (labelHeight*0.66)));
-      var minSteps = Math.floor((scaleHeight / labelHeight*0.5));
-      
-      return {
-        maxValue : upperValue,
-        minValue : lowerValue,
-        maxSteps : maxSteps,
-        minSteps : minSteps
-      };
-      
-  
-    }
   }
 	
 	
@@ -2426,7 +2300,7 @@ window.Chart = function(lang,context, options){
 	
 		calculateDrawingSizes();
 
-		valueBounds = getValueBounds();
+		valueBounds = getValueBounds(data,scaleHeight,labelHeight,"Bar");
 		
 		// true or fuzzy (error for negativ values (included 0))
 		if (config.logarithmic !== false) {
@@ -2695,30 +2569,10 @@ window.Chart = function(lang,context, options){
 			//Then get the area above we can safely draw on.
 
 		}		
-		function getValueBounds() {
-			var upperValue = Number.MIN_VALUE;
-			var lowerValue = Number.MAX_VALUE;
-			for (var i=0; i<data.datasets.length; i++){
-				for (var j=0; j<data.datasets[i].data.length; j++){
-					if ( data.datasets[i].data[j] > upperValue) { upperValue = data.datasets[i].data[j] };
-					if ( data.datasets[i].data[j] < lowerValue) { lowerValue = data.datasets[i].data[j] };
-				}
-			};
-
-			var maxSteps = Math.floor((scaleHeight / (labelHeight*0.66)));
-			var minSteps = Math.floor((scaleHeight / labelHeight*0.5));
-
-			return {
-				maxValue : upperValue,
-				minValue : lowerValue,
-				maxSteps : maxSteps,
-				minSteps : minSteps
-			};
-
-
-		}
 	}
 
+	
+	
 	function calculateOffset(config,val,calculatedScale,scaleHop){
 		if (!config.logarithmic) {
 			var outerValue = calculatedScale.steps * calculatedScale.stepValue;
@@ -3015,6 +2869,109 @@ window.Chart = function(lang,context, options){
 			bCur = parseInt((bP-bS)*percent+bS);
 		pseudoEl.parentNode.removeChild(pseudoEl);
 		return "rgb("+rCur+','+gCur+','+bCur+')';
+	}
+	
+	
+	/**
+	 * Get Value Bounds
+	 * @param data data including values
+	 * @param scaleHeight height of scale
+	 * @param labelHeight height of labels
+	 * @param type PolarArea|Radar|Line|LineDoubleY|Bar|StackedBar
+	 */
+	function getValueBounds(data,scaleHeight,labelHeight,type) {
+		var valueBounds = {};
+		
+		var upperValue = Number.MIN_VALUE;
+		var lowerValue = Number.MAX_VALUE;
+	
+		
+		switch (type) {
+			case "PolarArea":
+				for (var i=0; i<data.length; i++){
+					if (data[i].value > upperValue) {upperValue = data[i].value;}
+					if (data[i].value < lowerValue) {lowerValue = data[i].value;}
+				};
+
+				valueBounds = {
+					maxValue : upperValue,
+					minValue : lowerValue
+				};
+				break;
+			case "Radar":
+			case "Line":
+			case "Bar":
+				for (var i=0; i<data.datasets.length; i++){
+					for (var j=0; j<data.datasets[i].data.length; j++){
+						if (data.datasets[i].data[j] > upperValue){upperValue = data.datasets[i].data[j]}
+						if (data.datasets[i].data[j] < lowerValue){lowerValue = data.datasets[i].data[j]}
+					}
+				}
+
+				valueBounds = {
+					maxValue : upperValue,
+					minValue : lowerValue
+				};
+				break;
+			case "LineDoubleY":
+				var upperValue_Y1 = upperValue;
+				var lowerValue_Y1 = lowerValue;
+				var upperValue_Y2 = upperValue;
+				var lowerValue_Y2 = lowerValue;
+		
+				for (var i=0; i<data.datasets_Y1.length; i++){
+					for (var j=0; j<data.datasets_Y1[i].data.length; j++){
+						if ( data.datasets_Y1[i].data[j] > upperValue_Y1) { upperValue_Y1 = data.datasets_Y1[i].data[j] };
+						if ( data.datasets_Y1[i].data[j] < lowerValue_Y1) { lowerValue_Y1 = data.datasets_Y1[i].data[j] };
+					}
+				};
+
+				// second Y-axis
+				for (var i=0; i<data.datasets_Y2.length; i++){
+					for (var j=0; j<data.datasets_Y2[i].data.length; j++){
+						if ( data.datasets_Y2[i].data[j] > upperValue_Y2) { upperValue_Y2 = data.datasets_Y2[i].data[j] };
+						if ( data.datasets_Y2[i].data[j] < lowerValue_Y2) { lowerValue_Y2 = data.datasets_Y2[i].data[j] };
+					}
+				};
+
+
+				valueBounds = {
+					maxValue_Y1 : upperValue_Y1,
+					minValue_Y1 : lowerValue_Y1,
+					maxValue_Y2 : upperValue_Y2,
+					minValue_Y2 : lowerValue_Y2
+				};
+				break;
+			case "StackedBar":
+				 for (var i=0; i<data.datasets.length; i++){
+					for (var j=0; j<data.datasets[i].data.length; j++){
+					  var k = i;
+					  var temp = data.datasets[0].data[j];
+					  while ( k > 0 ){ //get max of stacked data
+						temp += data.datasets[k].data[j];
+						k--;
+					  }
+					  if ( temp > upperValue) { upperValue = temp; };
+					  if ( temp < lowerValue) { lowerValue = temp; };
+					}
+				  }
+
+				 valueBounds = {
+					maxValue : upperValue,
+					minValue : lowerValue
+				  };
+				break;
+		}
+		
+		
+		
+		var maxSteps = Math.floor((scaleHeight / (labelHeight*0.66)));
+		var minSteps = Math.floor((scaleHeight / labelHeight*0.25));
+
+		valueBounds.minSteps = minSteps;
+		valueBounds.maxSteps = maxSteps;
+		return valueBounds;
+		
 	}
 	
 	
