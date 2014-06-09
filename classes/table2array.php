@@ -79,7 +79,11 @@
 			$this->countries = json_decode(file_get_contents('JSON/countries.json'),true);
 		}
 		
-		/*  main function creates all arrays */
+		/**
+		 *  main function creates all arrays 
+		 *  @param string $table html table
+		 *  @param string $lang (de|en)
+		*/
 		function get_array($table,$lang) {
 		
 			// Get months
@@ -147,21 +151,22 @@
 		*/
 		function get_column_titles() {
 			// update $this->table (only text inside <table>)
-			$table_start = explode("<table", $this->table);
+			$table_start = preg_split("/<table/i", $this->table);
+			$this->t2aConsole[] = array(155,json_encode($table_start));
 			$table_start = substr($table_start[1],strpos($table_start[1],">")+1);
-			$table = explode("</table>", $table_start);
+			$table = preg_split("/<\/table>/i", $table_start);
 			$this->table = $table[0];
 			
 			// get the first row and the ths
-			$tr_start = explode("<tr", $this->table);
+			$tr_start = preg_split("/<tr/i", $this->table);
 			$tr_start = substr($tr_start[1],strpos($tr_start[1],">")+1);
-			$tr = explode("</tr>", $tr_start);
-			$ths = explode("<th",str_replace("</th>","",$tr[0]));
+			$tr = preg_split("/<\/tr>/i", $tr_start);
+			$ths = preg_split("/<th/i",str_replace("</th>","",$tr[0]));
 			$this->col_count = count($ths)-1;
 			
 			// no <th> tags
 			if ($this->col_count == 0) { 
-				$ths = explode("<td",str_replace("</td>","",$tr[0]));
+				$ths = preg_split("/<td/i",str_replace("</td>","",$tr[0]));
 				$this->col_count = count($ths)-1;
 			}
 			
@@ -205,7 +210,7 @@
 		*/
 		function get_structured_array() { 
 				$row_array = array();
-				$rows = explode("<tr",$this->table);
+				$rows = preg_split("/<tr/i",$this->table);
 				// number of rows (with not empty columns)			
 				$i = 0;
 				// ($this->col_count/$this->col_count_unique) = number of "single tables"
@@ -215,7 +220,7 @@
 					$col_max = $t*$this->col_count_unique;
 					
 					
-					// $row No. 0 is not in the table because of the $rows = explode ("<tr",$this->table);
+					// $row No. 0 is not in the table because of the $rows = preg_split("/<tr/i",$this->table);
 					// $row No. 1 is the column row -> start with $r = 2
 					for ($r = 2; $r < count($rows); $r++) {
 						$row = $rows[$r];
@@ -224,7 +229,7 @@
 						$row = substr($row,strpos($row,">")+1);
 
 						$this->t2aConsole[] = array(225,json_encode($cols));
-						$cols = explode("<td",$row);
+						$cols = preg_split("/<td/i",$row);
 						$cols = array_slice($cols,1); // remove the first (before <td)
 						// check if this $col is in the current "single table"
 						for ($c = $col_min; $c < $col_max; $c++) {
