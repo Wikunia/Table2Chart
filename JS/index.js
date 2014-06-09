@@ -18,7 +18,7 @@ $(document).ready(function(){
 		}
 		
 			
-		console.log(JSON.stringify(value_columns));
+		
 		$.post("getdata.php", {table: table,lang: lang,value: JSON.stringify(value_columns)}, function(json)  {
 			if (json) {	
 				
@@ -100,13 +100,11 @@ $(document).ready(function(){
 			$("#"+id+"Legend").css("display","block");
 			bool_show_all[id] = false;
 			$("#"+id+"Legend").html("");
-			$.get("tables/"+id+".htm", function(data) {
-			}).success(function (data) {
-				create_graph(id,data,[]);	
-				$('html, body').animate({
-				scrollTop: $("#"+id+"Chart").offset().top
-				}, 500);				
-			});
+			var data = $("#"+id+"Table").html();
+			create_graph(id,data,[]);	
+			$('html, body').animate({
+			scrollTop: $("#"+id+"Chart").offset().top
+			}, 500);
 			$("#save_"+id).css("display","block");
 			$("#vis_"+id).html('Show table');
 		} else {
