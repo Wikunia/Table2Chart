@@ -4,7 +4,7 @@ $(document).ready(function(){
 	var bool_show_all = new Array({'pie':false},{'line':false},{'climate':false},
 								  {'lineDoubleY':false},{'bar':false},{'stackedBar':false},{'map':false});
 
-	function create_graph(type,table,value_columns) {
+	function create_graph(type,table,value_columns,animation) {
 	
 		
 		if (value_columns.length > 0 && bool_show_all[type] === false) {
@@ -31,38 +31,43 @@ $(document).ready(function(){
 								animationSteps : 50,
 								animationEasing : "easeOutCirc",
 								animateRotate : true,
-								animateScale : true
+								animateScale : true,
+								animation: animation
 						}); 
 						break;		
 					case "line": 
 						var ctx = $("#lineChartCanvas").get(0).getContext("2d");
-						var myChart = new Chart(lang,ctx).Line(json.data,{	datasetFill:false, bezierCurve : false}); 
+						var myChart = new Chart(lang,ctx).Line(json.data,{	animation: animation, datasetFill:false, bezierCurve : false});
 						if (value_columns.length == 0 && bool_show_all[type] === false) { legend("lineLegend", json.data); }
 						break;
 					case "lineDoubleY": 
 						var ctx = $("#lineDoubleYChartCanvas").get(0).getContext("2d");
-						var myChart = new Chart(lang,ctx).LineDoubleY(json.data,{	datasetFill:false, bezierCurve : false}); 
+						var myChart = new Chart(lang,ctx).LineDoubleY(json.data,{	animation: animation, datasetFill:false, bezierCurve : false});
 						if (value_columns.length == 0 && bool_show_all[type] === false) { legend("lineDoubleYLegend", json.data); }
 						break;
 					case "climate": 
 						var ctx = $("#climateChartCanvas").get(0).getContext("2d");
-						var myChart = new Chart(lang,ctx).LineDoubleY(json.data,{	climate: true, datasetFill:true, bezierCurve : false}); 
+						var myChart = new Chart(lang,ctx).LineDoubleY(json.data,{animation: animation,
+																				 climate: true, datasetFill:true, bezierCurve : false});
 						if (value_columns.length == 0 && bool_show_all[type] === false) { legend("climateLegend", json.data); }
 						break;
 					case "bar": 
 						var ctx = $("#barChartCanvas").get(0).getContext("2d");
-						var myChart = new Chart(lang,ctx).Bar(json.data);
+						var myChart = new Chart(lang,ctx).Bar(json.data, {animation: animation});
 						if (value_columns.length == 0 && bool_show_all[type] === false) { legend("barLegend", json.data); }
 						break;
 					case "stackedbar": 
 						$("#stackedBarChartCanvas").css("display","block");
 						var ctx = $("#stackedBarChartCanvas").get(0).getContext("2d");
-						var myChart = new Chart(lang,ctx).StackedBar(json.data, { scaleOverride: true, scaleSteps: 10, scaleStepWidth: 10, scaleStartValue: 0}); 
+						var myChart = new Chart(lang,ctx).StackedBar(json.data, { animation: animation,
+																				 scaleOverride: true,
+																				 scaleSteps: 10, scaleStepWidth: 10, scaleStartValue: 0});
 						if (value_columns.length == 0 && bool_show_all[type] === false) { legend("stackedBarLegend", json.data); }
 						break;
 					case "map":
 						$("#map").css("display","block");
-						var myMapChart = new MapChart("mapChartCanvasMap").Map(json.data,{ width:800, height:400, color_from: '#00ff00', color_to: '#ff0000', legend: "mapLegend" }); 
+						var myMapChart = new MapChart("mapChartCanvasMap").Map(json.data,{
+							width:800, height:400, color_from: '#00ff00', color_to: '#ff0000', legend: "mapLegend" });
 					default:
 						// there is no canvas if the type is a map :/ 
 						if (type != "map") {
@@ -101,7 +106,8 @@ $(document).ready(function(){
 			bool_show_all[id] = false;
 			$("#"+id+"Legend").html("");
 			var data = $("#"+id+"Table").html();
-			create_graph(id,data,[]);	
+			$("#"+id+"ChartCanvas").data("columns", []);
+			create_graph(id,data,[],true);
 			$('html, body').animate({
 			scrollTop: $("#"+id+"Chart").offset().top
 			}, 500);
@@ -171,25 +177,25 @@ $(document).ready(function(){
 		var type = $(this).parent('.legend').attr("id").replace(/Legend/,'');
 		
 		if (type == "bar" || type == "stackedBar" || type == "line") {
-			$.get("tables/"+type+".htm", function(data) {
-			}).success(function (data) {
-				var columns = $("#"+type+"ChartCanvas").data("columns");
-				if (!columns) { columns = []; }
-				var posInArray = columns.indexOf(title);
-				if (title == "Show all") { columns = []; }
-				else if (posInArray >= 0) { // delete from array
-					columns.splice(posInArray,1);
-				} else { // add to array
-					columns.push(title);
-				}
-				
-				$("#"+type+"ChartCanvas").data("columns", columns);
-				
-				create_graph(type,data,columns);	
-				$('html, body').animate({
-				scrollTop: $("#"+type+"Chart").offset().top
-				}, 500);				
-			});
+			var data = $("#"+type+"Table").html();
+
+			var columns = $("#"+type+"ChartCanvas").data("columns");
+			if (!columns) { columns = []; }
+			var posInArray = columns.indexOf(title);
+			if (title == "Show all") { columns = []; }
+			else if (posInArray >= 0) { // delete from array
+				columns.splice(posInArray,1);
+			} else { // add to array
+				columns.push(title);
+			}
+
+			$("#"+type+"ChartCanvas").data("columns", columns);
+			// false => no animation
+			create_graph(type,data,columns,false);
+			$('html, body').animate({
+			scrollTop: $("#"+type+"Chart").offset().top
+			}, 500);
+
 		}		
 	});
 	
