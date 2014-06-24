@@ -31,9 +31,13 @@ class chart extends table2array {
 		private $label_columns;
 		private $nut_label_columns;
 	
-		
+	/**
+	 * get all arrays of the table2array class
+	 * @param string $table html table
+	 * @param string $lang (de|en)
+	*/
 	function __construct($table,$lang) {
-		// get all arrays of the table2array class
+
 		$this->get_countries();
 		$this->get_array($table,$lang);
 	}
@@ -454,21 +458,6 @@ class chart extends table2array {
 				
 				break;
 			case "no_sort":
-				$labels = array();
-				for ($i = 0; $i < $this->row_count-1; $i++) {
-					$labels[] = $this->row_array[$i][$label];
-				}
-				
-				$datasets = array();
-				for ($v = 0; $v < $count_val; $v++) {
-					$data = array();
-					for ($i = 0; $i < $this->row_count-1; $i++) {
-						$data[] = floatval($this->row_array[$i][$values[$v]]);
-					}
-					
-					$datasets[] = array("fillColor"=>$rgb[$v],"strokeColor"=>$rgb[$v],"title"=>$val_names[$v],"data"=>$data);
-				}
-				break;
 			default:
 				$labels = array();
 				for ($i = 0; $i < $this->row_count-1; $i++) {
@@ -484,10 +473,23 @@ class chart extends table2array {
 					
 					$datasets[] = array("fillColor"=>$rgb[$v],"strokeColor"=>$rgb[$v],"title"=>$val_names[$v],"data"=>$data);
 				}
-				
-				// if there is only one dataset the function sort_array sorts the dataset desc
-				if (count($datasets) == 1) {
-					list($labels,$datasets) = $this->sort_array($labels,$datasets,$values);
+				if ($special != "nosort") {
+					// if there is only one dataset the function sort_array sorts the dataset desc
+					if (count($datasets) == 1) {
+						list($labels,$datasets) = $this->sort_array($labels,$datasets,$values);
+					} else { // check if one dataset is a rank
+						$rank_column = false;
+						for($i = 0; $i < count($datasets); $i++) {
+							$this->console[] = array(482,json_encode($datasets[$i]["data"]));
+							if ((max($datasets[$i]["data"])-min($datasets[$i]["data"])+1) == count($datasets[$i]["data"])) {
+								$rank_column = $i;
+								break;
+							}
+						}
+						if ($rank_column !== false) {
+							list($labels,$datasets) = $this->sort_array($labels,$datasets,$values,$rank_column);
+						}
+					}
 				}
 				break;
 		}
@@ -626,23 +628,25 @@ class chart extends table2array {
 	
 	/** ******************************************************************* */
 	
-	function sort_array($labels,$datasets,$values) {
-		$data = $datasets[0]["data"];
+
+	function sort_array($labels,$datasets,$values,$datasetNr=0) {
 		$array = array();
 		for ($i = 0; $i < count($labels); $i++) {
-			$array[$labels[$i]] = $data[$i];
+			for ($j = 0; $j < count($labels)-$i-1; $j++) {
+				if ($datasets[$datasetNr]["data"][$j] > $datasets[$datasetNr]["data"][$j+1]) {
+					$cache = $labels[$j];
+					$labels[$j] = $labels[$j+1];
+					$labels[$j+1] = $cache;
+					for ($d = 0; $d < count($datasets); $d++) {
+						$cache = $datasets[$d]["data"][$j];
+						$datasets[$d]["data"][$j] = $datasets[$d]["data"][$j+1];
+						$datasets[$d]["data"][$j+1] = $cache;
+					}
+				}
+			}
 		}
-		arsort($array);
-		$labels = array();
-		$data = array();
 		
-		foreach($array as $label=>$value) {
-			$labels[] = $label;
-			$data[] = $value;
-		}
-		$return_datasets = array();
-		$return_datasets[] = array("fillColor"=>$datasets[0]["fillColor"],"strokeColor"=>$datasets[0]["strokeColor"],"title"=>$values[0],"data"=>$data);
-		return array($labels,$return_datasets);
+		return array($labels,$datasets);
 	}
 		
 		
