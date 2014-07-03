@@ -3,13 +3,14 @@
 	<title>Visualize your table</title>
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 	<link rel="stylesheet" href="CSS/create.css"/>
-	<script src="http://www.openlayers.org/api/OpenLayers.js"></script>
 	<script type="text/javascript" src="JS/gradient.min.js"></script>
 	<script type="text/javascript" src="JS/chart.js"></script>
 	<script type="text/javascript" src="JS/map.js"></script>
 	<script type="text/javascript" src="JS/create.js"></script>
 	<script type="text/javascript" src="JS/filesaver.js"></script>
 	<script type="text/javascript" src="JS/canvas-toBlob.js"></script>
+	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+	<link rel="stylesheet" href="CSS/map.css"/>
 </head>
 <body>
 <h1>Visualize your HTML-Table</h1>
@@ -20,7 +21,7 @@ Your entry is saved for the improvement of the service. <br>
 </div>
 <div class="canvasWrapper">
 	<canvas id="ChartCanvas" class="chart" width="800" height="400"></canvas>
-	<div id="mapChartCanvas" class="chart"><div id="mapChartCanvasMap"></div><div id="source">Map source:<a href="http://openstreetmap.org">OpenStreetMap</a></div></div>
+	<div id="map"></div>
 </div>
 <br>
 <div id="Legend" class="legend">
@@ -28,6 +29,7 @@ Your entry is saved for the improvement of the service. <br>
 </div>
 <div class="clearleft">
 
-
+<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+<script src="JS/map.js"></script>
 </body>
 </html>

@@ -6,14 +6,14 @@
 		<link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" />
 		<meta name="description" content="Open source tool which visualizes html tables with Chart.js. Even the type of representation is determined automatically."/>
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-		<script src="http://www.openlayers.org/api/OpenLayers.js"></script>
 		<script type="text/javascript" src="JS/gradient.min.js"></script>
 		<script type="text/javascript" src="JS/chart.js"></script>
-		<script type="text/javascript" src="JS/map.js"></script>
 		<script type="text/javascript" src="JS/index.js"></script>
 		<script type="text/javascript" src="JS/filesaver.js"></script>
 		<script type="text/javascript" src="JS/canvas-toBlob.js"></script>
+		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
 		<link rel="stylesheet" href="CSS/styles.css"/>
+		<link rel="stylesheet" href="CSS/map.css"/>
 	</head>
 	<body>
 	<header>
@@ -25,6 +25,7 @@
 		This tool visualizes tables automatically by creating a structured table array. It decides which chart type is the best choice.<br>
 		This is <b>open source</b> so everybody can improve this tool and of course use it for <b>free</b> (It's licensed under the <a href="http://opensource.org/licenses/MIT">MIT License</a>).<br>
 		To create charts I use <a href="http://chartjs.org">Chart.js</a> by <a href="http://nickdownie.com">Nick Downie</a>.<br>
+		I use <a href="http://leafletjs.com/">leafletjs.com</a> to draw the maps for the MapChart.<br>
 	</section>
 	<section id="new">
 		<b>Now it's possible to visualize your own html tables <a href="create.php">here</a>!</b><br>
@@ -49,7 +50,7 @@
 				<canvas id="lineChartCanvas" class="chart" width="800" height="400"></canvas>
 				<div id="lineTable" class="table">
 				<?php
-					include('tables/line.htm');
+					include('tables/births.htm');
 				?>
 				</div>
 			</div>
@@ -130,7 +131,7 @@
 				<canvas id="barChartCanvas" class="chart" width="800" height="400"></canvas>
 				<div id="barTable" class="table">
 				<?php
-					include('tables/bar.htm');
+					include('tables/WM2010rang.htm');
 				?>
 				</div>			
 			</div>
@@ -204,11 +205,11 @@
 				</div>
 			</div>
 			<div class="canvasWrapper">
-				<div id="mapChartCanvas" class="chart"><div id="mapChartCanvasMap"></div><div id="source">Map source:<a href="http://openstreetmap.org">OpenStreetMap</a></div></div>
+				<div id="map" class="chart"></div>
 			
 				<div id="mapTable" class="table">
 				<?php
-					include('tables/map.htm');
+					include('tables/WM2010.htm');
 				?>
 				</div>					
 			</div>
@@ -222,5 +223,8 @@
 	<footer>
 		A project by <a href="https://github.com/Wikunia">Ole Kröger</a>
 	</footer>
+
+	<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+	<script src="JS/map.js"></script>
 	</body>
 </html>

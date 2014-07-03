@@ -32,6 +32,10 @@ th, td {
 	padding:20px 0px;
 }
 
+.table {
+	max-height: 400px;
+	overflow: auto;
+}
 .canvasWrapper {
 	float:left;
 	margin-left:10px;
@@ -67,6 +71,10 @@ th, td {
 		border-style: solid;
 		border-width: 0 0 0 1em;
 		padding: 0 0.3em;
+	}
+
+	.legend .tableTitle {
+		font-size: 1.1em;
 	}
 	
 

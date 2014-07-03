@@ -1,10 +1,14 @@
-/*!
+/*
  * Chart.js
  * http://chartjs.org/
  *
  * Copyright 2013 Nick Downie
  * Released under the MIT license
  * https://github.com/nnnick/Chart.js/blob/master/LICENSE.md
+ *
+ * Additional features:
+ * Tooltips by Regaddi https://github.com/nnnick/Chart.js/pull/51
+ * My own pulls https://github.com/Wikunia/Chart.js
  */
 
 //Define the global Chart Variable as a class.
@@ -331,7 +335,63 @@ window.Chart = function(lang,context, options){
 				context.putImageData(chart.savedState,0,0);
 			}
 		}
+		if (document.getElementsByClassName("additionalData").length > 0) {
+		  var position = getPosition(context.canvas),
+					mx = (e.clientX)-position.x;
+			updateAdditionalData(mx);
+		}
 	}
+
+	function updateAdditionalData(x) {
+		if (!lockedAdditionalData && additionalData.length > 0) {
+			if (additionalData[x]) {
+				var additionalDataClass = document.getElementsByClassName("additionalData");
+				if (document.getElementsByClassName("additionalData-Values").length > 0) {
+					if (document.getElementsByClassName("additionalData-Label").length > 0) {
+						var newInnerLabel = additionalData[x].label;
+						document.getElementsByClassName("additionalData-Label")[0].innerHTML = newInnerLabel;
+					}
+					var newInnerValues = parseAdditionalData(additionalData[x].values,additionalData[x].tmpl);
+					document.getElementsByClassName("additionalData-Values")[0].innerHTML = newInnerValues;
+				}else {
+					var newInnerHTML = '<b><u>'+additionalData[x].label+'</u></b>\
+										<br>'+parseAdditionalData(additionalData[x].values,additionalData[x].tmpl);
+					additionalDataClass[0].innerHTML = newInnerHTML;
+				}
+			}
+		}
+	}
+
+	function parseAdditionalData(values,tmpl) {
+		var result = '', regexp='';
+		for (var i = 0; i < values.length; i++) {
+			var resultPart = tmpl;
+			for (j = 0; j < values[i].length; j++) {
+				regexp = new RegExp('%values\\['+j+'\\]%','g');
+				resultPart = resultPart.replace(regexp,values[i][j]);
+			}
+			result += resultPart+'<br>';
+		}
+		return result;
+	}
+
+	var additionalData = [];
+	var lockedAdditionalData = false;
+	var lastFloor = 0;
+	function registerAdditionalData(xPos,j,label,values,tmpl) {
+		lastFloor = Math.round(xPos);
+		additionalData[lastFloor] = {iteration: j, label: label, values: values, tmpl: tmpl};
+	}
+
+	function lockAdditionalData(e) {
+		var position = getPosition(context.canvas),
+			mx = (e.clientX)-position.x;
+		lockedAdditionalData = lockedAdditionalData ? false : true; // toggle
+		if (!lockAdditionalData) {
+			updateAdditionalData(e);
+		}
+	}
+
 
 	 if (is_touch_device()) {
 		context.canvas.ontouchstart = function(e) {
@@ -347,6 +407,9 @@ window.Chart = function(lang,context, options){
 	} else {
 		context.canvas.onmousemove = function(e) {
 			tooltipEventHandler(e);
+		}
+		context.canvas.onclick = function(e) {
+			lockAdditionalData(e);
 		}
 	}
 	
@@ -404,7 +467,7 @@ window.Chart = function(lang,context, options){
 			showTooltips : true
 		};
 
-		var config = (options)? mergeChartConfig(chart.PolarArea.defaults,options) : chart.PolarArea.defaults;
+		var config = $.extend({}, chart.PolarArea.defaults, options);
 
 		return new PolarArea(data,config,context);
 	};
@@ -450,7 +513,7 @@ window.Chart = function(lang,context, options){
 			showTooltips : true
 		};
 
-		var config = (options)? mergeChartConfig(chart.Radar.defaults,options) : chart.Radar.defaults;
+		var config = $.extend({}, chart.Radar.defaults, options);
 
 		return new Radar(data,config,context);
 	};
@@ -474,7 +537,7 @@ window.Chart = function(lang,context, options){
 			showTooltips : true
 		};		
 
-		var config = (options)? mergeChartConfig(chart.Pie.defaults,options) : chart.Pie.defaults;
+		var config = $.extend({}, chart.Pie.defaults, options);
 
 		return new Pie(data,config,context);				
 	};
@@ -495,7 +558,7 @@ window.Chart = function(lang,context, options){
 			showTooltips : true
 		};		
 
-		var config = (options)? mergeChartConfig(chart.Doughnut.defaults,options) : chart.Doughnut.defaults;
+		var config = $.extend({}, chart.Doughnut.defaults, options);
 
 		return new Doughnut(data,config,context);			
 
@@ -534,14 +597,14 @@ window.Chart = function(lang,context, options){
 			showTooltips : true,
 			logarithmic: false
 		};		
-		var config = (options) ? mergeChartConfig(chart.Line.defaults,options) : chart.Line.defaults;
+		var config = $.extend({}, chart.Line.defaults, options);
 
 		return new Line(data,config,context);
 	}
 
 	this.LineDoubleY = function(data,options){
 	
-		chart.Line.defaults = {
+		chart.LineDoubleY.defaults = {
 			scaleOverlay : false,
 			scaleLineColor : "rgba(0,0,0,.4)",
 			scaleLineWidth : 1,
@@ -575,7 +638,8 @@ window.Chart = function(lang,context, options){
 			showTooltips : true,
 			climate: false
 		};		
-		var config = (options) ? mergeChartConfig(chart.Line.defaults,options) : chart.Line.defaults;
+
+		var config = $.extend({}, chart.LineDoubleY.defaults, options);
 		
 		return new LineDoubleY(data,config,context);
 	}
@@ -608,7 +672,7 @@ window.Chart = function(lang,context, options){
       onAnimationComplete : null,
 	  showTooltips : true
     };    
-    var config = (options) ? mergeChartConfig(chart.StackedBar.defaults,options) : chart.StackedBar.defaults;
+    var config = $.extend({}, chart.StackedBar.defaults, options);
     return new StackedBar(data,config,context);
   }
 	
@@ -643,7 +707,10 @@ window.Chart = function(lang,context, options){
 			AverageStrokeColor: "#000000",
 			logarithmic: false
 		};		
-		var config = (options) ? mergeChartConfig(chart.Bar.defaults,options) : chart.Bar.defaults;
+
+
+		var config = $.extend({}, chart.Bar.defaults, options);
+
 
 		return new Bar(data,config,context);		
 	}
@@ -1150,6 +1217,10 @@ window.Chart = function(lang,context, options){
 		var maxSize, scaleHop, calculatedScale, labelHeight, scaleHeight, valueBounds, labelTemplateString, valueHop,widestXLabel, xAxisLength,yAxisPosX,xAxisPosY, rotateLabels = 0;
 		var xAxisLabel = new Array();
 		var LabelIsDate = true;
+		var monthArray = [];
+		if (data.datasets.length*data.datasets[0].data.length > 100) {
+			config.animation = false;
+		}
 		
 		calculateDrawingSizes();
 		
@@ -1211,51 +1282,63 @@ window.Chart = function(lang,context, options){
 		if (config.pointDot == 'fuzzy' && data.labels.length/xAxisLength >= 0.25) {
 			config.pointDot = false;
 		}
-		animationLoop(config,drawScale,drawLines,ctx);		
+
 		
 		// YYYY in DD.MM.YYYY || MM.YYYY in DD.MM.YYYY
 		if (data.labels[0].toString().match(/^((0?[1-9])|10|11|12)\.(1|2)[0-9]{3}$/)) {
+			data.dateLabels = [];
 			for (var i = 0; i < data.labels.length; i++) {
-				data.labels[i] = '01.'+data.labels[i];
+				data.dateLabels[i] = '01.'+data.labels[i];
 			}
-		}
-		
-		if (data.labels[0].toString().match(/^(1|2)[0-9]{3}$/)) {
-			for (var i = 0; i < data.labels.length; i++) {
-				data.labels[i] = '01.01.'+data.labels[i];
+		} else {
+			var currentYear = new Date().getFullYear();
+			if (data.labels[0].toString().match(/^((0?[1-9])|[10-31])\.((0?[1-9])|10|11|12)(\.)?$/)) {
+				data.dateLabels = [];
+				for (var i = 0; i < data.labels.length; i++) {
+					if (data.labels[i].charAt(data.labels[i].length-1) == '.') data.labels[i] = data.labels[i].substr(0,-1);
+					if (currentYear != 2012 && (data.labels[i] == "29.1" || data.labels[i] == "29.01")) {
+						currentYear = 2012;
+						i=0;
+					}
+					data.dateLabels[i] = data.labels[i]+'.'+currentYear;
+				}
+			} else if (data.labels[0].toString().match(/^(1|2)[0-9]{3}$/)) {
+				data.dateLabels = [];
+				for (var i = 0; i < data.labels.length; i++) {
+					data.dateLabels[i] = '01.01.'+data.labels[i];
+				}
 			}
 		}
 		
 		// Test if all labels are dates
-		for (var i = 0; i < data.labels.length; i++) {
-			myDate=data.labels[i].toString().split(".");
-			var test_timestamp = new Date(myDate[1]+"/"+myDate[0]+"/"+myDate[2]).getTime();
-			if (isNaN(test_timestamp)) {
-				LabelIsDate = false;
-				break;
+		if (data.dateLabels) {
+			for (var i = 0; i < data.dateLabels.length; i++) {
+				myDate=data.dateLabels[i].toString().split(".");
+				var test_timestamp = new Date(myDate[1]+"/"+myDate[0]+"/"+myDate[2]).getTime();
+				if (isNaN(test_timestamp)) {
+					LabelIsDate = false;
+					break;
+				}
 			}
-		}
+		} else LabelIsDate = false;
 		
 		
 		// difference max_date and min_date
 		if (LabelIsDate === true) {
-			myDate=data.labels[0].split(".");
+			myDate=data.dateLabels[0].split(".");
 			var min_timestamp = new Date(myDate[1]+"/"+myDate[0]+"/"+myDate[2]).getTime();
-			myDate=data.labels[data.labels.length-1].split(".");
+			myDate=data.dateLabels[data.dateLabels.length-1].split(".");
 			var max_timestamp = new Date(myDate[1]+"/"+myDate[0]+"/"+myDate[2]).getTime();
 			
 			var max_dif = max_timestamp-min_timestamp;
 		}
 		
-		
-		function drawLines(animPc){		
-			for (var i=0; i<data.datasets.length; i++){
-		
-				ctx.strokeStyle = data.datasets[i].strokeColor;
-				ctx.lineWidth = config.datasetStrokeWidth;
-				ctx.beginPath();
-				ctx.moveTo(yAxisPosX, xAxisPosY - animPc*(calculateOffset(config,data.datasets[i].data[0],calculatedScale,scaleHop)))
+		animationLoop(config,drawScale,drawLines,ctx);
 
+		function drawLines(animPc){
+			var cachedXPos = [];
+			var cachedYPos = [];
+			function drawLine() {
 				for (var j=1; j<data.datasets[i].data.length; j++){
 					if (config.bezierCurve){
 						ctx.bezierCurveTo(xPos(j-0.5),yPos(i,j-1),xPos(j-0.5),yPos(i,j),xPos(j),yPos(i,j));
@@ -1264,23 +1347,52 @@ window.Chart = function(lang,context, options){
 						ctx.lineTo(xPos(j),yPos(i,j));
 					}
 				}
-				
+			}
+
+			function tooltipLine() {
+				var showAdditional = false;
+				if (document.getElementsByClassName("additionalData").length > 0) {
+					showAdditional = true;
+				}
 				var pointRadius = config.pointDot ? config.pointDotRadius+config.pointDotStrokeWidth : 10;
-				for(var j = 0; j < data.datasets[i].data.length; j++) {
-					if(animPc >= 1 && config.showTooltips) {
-						// register tooltips
-						if (data.datasets[i].dot) {
-							if (data.datasets[i].dot[j] == true) { 
+				if(animPc >= 1 && config.showTooltips) {
+					for(var j = 0; j < data.datasets[i].data.length; j++) {
+							// register tooltips
+							if (data.datasets[i].dot) {
+								if (data.datasets[i].dot[j] == true) {
+									registerTooltip(ctx,{type:'circle',x:xPos(j),y:yPos(i,j),r:pointRadius},{label:data.labels[j],value:data.datasets[i].data[j]},'Line');
+								}
+							}
+							else
+							{
 								registerTooltip(ctx,{type:'circle',x:xPos(j),y:yPos(i,j),r:pointRadius},{label:data.labels[j],value:data.datasets[i].data[j]},'Line');
 							}
 						}
-						else
-						{
-							registerTooltip(ctx,{type:'circle',x:xPos(j),y:yPos(i,j),r:pointRadius},{label:data.labels[j],value:data.datasets[i].data[j]},'Line');
+				}
+				if (animPc >=1 && showAdditional) {
+					for(var j = 0; j < data.datasets[i].data.length; j++) {
+						if (data.datasets[i].additionalDataTmpl) {
+							var addData = data.datasets[i].additionalData[j] ?  data.datasets[i].additionalData[j] : '';
+							registerAdditionalData(xPos(j),j,data.labels[j],addData,data.datasets[i].additionalDataTmpl);
 						}
 					}
 				}
+			}
+
+			for (var i=0; i<data.datasets.length; i++){
+				cachedYPos[i] = [];
+				ctx.strokeStyle = data.datasets[i].strokeColor;
+				ctx.lineWidth = config.datasetStrokeWidth;
+				ctx.beginPath();
+				ctx.moveTo(yAxisPosX, xAxisPosY - animPc*(calculateOffset(config,data.datasets[i].data[0],calculatedScale,scaleHop)))
+
+				console.time('drawLine');
+				drawLine();
+				console.timeEnd('drawLine');
 				
+				console.time('tooltip');
+				tooltipLine();
+				console.timeEnd('tooltip');
 				
 				ctx.stroke();
 				if (config.datasetFill){
@@ -1299,7 +1411,7 @@ window.Chart = function(lang,context, options){
 					ctx.lineWidth = config.pointDotStrokeWidth;
 					for (var k=0; k<data.datasets[i].data.length; k++){
 						ctx.beginPath();
-						ctx.arc(xPos(k),xAxisPosY - animPc*(calculateOffset(config,data.datasets[i].data[k],calculatedScale,scaleHop)),config.pointDotRadius,0,Math.PI*2,true);
+						ctx.arc(xPos(k),yPos(i,k),config.pointDotRadius,0,Math.PI*2,true);
 						ctx.fill();
 						ctx.stroke();
 					}
@@ -1308,16 +1420,25 @@ window.Chart = function(lang,context, options){
 			}
 			
 			function yPos(dataSet,iteration){
-				return xAxisPosY - animPc*(calculateOffset(config,data.datasets[dataSet].data[iteration],calculatedScale,scaleHop));			
+				if (cachedYPos[dataSet][iteration]) {
+					return cachedYPos[dataSet][iteration];
+				}
+				var result = xAxisPosY - animPc*(calculateOffset(config,data.datasets[dataSet].data[iteration],calculatedScale,scaleHop));
+				cachedYPos[dataSet][iteration] = result;
+				return result;
 			}
 			function xPos(iteration){
+				if (cachedXPos[iteration]) {
+					return cachedXPos[iteration];
+				}
+
 				var result;
 				if (LabelIsDate === true) {
 					if ((iteration != 0) && (iteration != -0.5)) {
 						if (Math.round(iteration) != iteration) { // bezier-curve
-							var myDate=data.labels[iteration+0.5].split(".");				
+							var myDate=data.dateLabels[iteration+0.5].split(".");
 							var timestamp = new Date(myDate[1]+"/"+myDate[0]+"/"+myDate[2]).getTime();
-							var myDate=data.labels[iteration-0.5].split(".");				
+							var myDate=data.dateLabels[iteration-0.5].split(".");
 							var l_timestamp = new Date(myDate[1]+"/"+myDate[0]+"/"+myDate[2]).getTime();
 							var dif_time = (timestamp - l_timestamp);
 						
@@ -1325,9 +1446,9 @@ window.Chart = function(lang,context, options){
 							result = xPos(iteration-1) + abs_x;
 						}
 						else {
-							var myDate=data.labels[iteration].split(".");				
+							var myDate=data.dateLabels[iteration].split(".");
 							var timestamp = new Date(myDate[1]+"/"+myDate[0]+"/"+myDate[2]).getTime();
-							var myDate=data.labels[iteration-1].split(".");				
+							var myDate=data.dateLabels[iteration-1].split(".");
 							var l_timestamp = new Date(myDate[1]+"/"+myDate[0]+"/"+myDate[2]).getTime();
 							var dif_time = timestamp - l_timestamp;
 						
@@ -1342,20 +1463,23 @@ window.Chart = function(lang,context, options){
 					}
 					
 					if (iteration == -0.5) {
-						var myDate=data.labels[0].split(".");				
+						var myDate=data.dateLabels[0].split(".");
 						var timestamp = new Date(myDate[1]+"/"+myDate[0]+"/"+myDate[2]).getTime();
-						var myDate=data.labels[iteration+1.5].split(".");				
+						var myDate=data.dateLabels[iteration+1.5].split(".");
 						var l_timestamp = new Date(myDate[1]+"/"+myDate[0]+"/"+myDate[2]).getTime();
 						var dif_time = (timestamp - l_timestamp);
 					
 						var abs_x = (dif_time/max_dif)*xAxisLength;
 						result = yAxisPosX + abs_x;					
 					}
-					
+					if (iteration % 1 == 0) {
+						cachedXPos[iteration] = result;
+					}
 					return result;
 				}
 				else
 				{
+					cachedXPos[iteration] = yAxisPosX + (valueHop * iteration);
 					return yAxisPosX + (valueHop * iteration);
 				}
 			}
@@ -1372,31 +1496,39 @@ window.Chart = function(lang,context, options){
 			if (LabelIsDate === true) {
 				var count_years = Math.round(max_dif/31540000000); // millisec per year
 				var dis_years;
-				if (count_years >= 1) {
-					dis_years = 1;		
-				}
-				if (count_years >= 10) {
-					dis_years = 2;		
-				}
-				if (count_years >= 50) {
-					dis_years = 10;		
-				}
-				if (count_years >= 100) {
-					dis_years = 20;		
-				}
-				if (count_years >= 500) {
-					dis_years = 100;		
-				}
-				if (count_years >= 1000) {
+				if (count_years == 1) {
+					dis_years = 0;
+				} else 	if (count_years >= 1000) {
 					dis_years = 200;		
+				} else if (count_years >= 500) {
+					dis_years = 100;
+				} else if (count_years >= 100) {
+					dis_years = 20;
+				} else if (count_years >= 50) {
+					dis_years = 10;
+				} else if (count_years >= 10) {
+					dis_years = 2;
+				} else if (count_years >= 2) {
+					dis_years = 1;
 				}
 			}
 			
 			var xLabelDis = 0;
 			xAxisLabel = new Array(); 
 			if (LabelIsDate === true) {
-				for (var i = parseInt(data.labels[0].toString().split(".")[2]); i <= parseInt(data.labels[data.labels.length-1].toString().split(".")[2]); i++) {
-					if (i%dis_years == 0) {
+				if (dis_years == 0) {
+					var date_part = 1;
+				} else var date_part = 2;
+				var start_date = parseInt(data.dateLabels[0].toString().split(".")[date_part]);
+				var end_date = parseInt(data.dateLabels[data.dateLabels.length-1].toString().split(".")[date_part]);
+
+
+				for (var i = start_date; i <= end_date; i++) {
+					if (dis_years == 0) {
+						if (lang == "en") monthArray = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+						else  monthArray = ["Jan","Feb","Mar","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+						xAxisLabel.push(monthArray[i-1]);
+					} else if (i%dis_years == 0) {
 						xAxisLabel.push(i);
 					}
 				}
@@ -1554,13 +1686,25 @@ window.Chart = function(lang,context, options){
 				return like_rank;
 			}
 			
-			function xLabel(year){
-					
+			function xLabel(value) {
+				if (isNumber(value)) {
+					return xLabelYear(value);
+				}
+
+				return xLabelMonth(monthArray.indexOf(value)+1);
+			}
+
+			function xLabelYear(year){
 					var year_timestamp = new Date("01/01/"+year).getTime();
 			
 					return yAxisPosX+((year_timestamp-min_timestamp)/max_dif)*xAxisLength;
 			}
 			
+			function xLabelMonth(mon){
+					var year_timestamp = new Date(mon+"/01/"+currentYear).getTime();
+					return yAxisPosX+((year_timestamp-min_timestamp)/max_dif)*xAxisLength;
+			}
+
 			
 			//Y axis
 			ctx.lineWidth = config.scaleLineWidth;
@@ -2602,14 +2746,20 @@ window.Chart = function(lang,context, options){
 				drawData(easeAdjustedAnimationPercent);
 				drawScale();
 			} else {
+				console.time('drawScale');
 				drawScale();
+				console.timeEnd('drawScale');
+				console.time('drawData');
 				drawData(easeAdjustedAnimationPercent);
+				console.timeEnd('drawData');
 			}				
 		}
 		function animLoop(){
 			//We need to check if the animation is incomplete (less than 1), or complete (1).
 				percentAnimComplete += animFrameAmount;
+
 				animateFrame();	
+
 				//Stop the loop continuing forever
 				if (percentAnimComplete <= 1){
 					requestAnimFrame(animLoop);
@@ -2789,6 +2939,7 @@ window.Chart = function(lang,context, options){
 		}
 		return valueToCap;
 	}
+
 	function getDecimalPlaces (num){
 		var numberOfDecimalPlaces;
 		if (num%1!=0){
@@ -2799,19 +2950,6 @@ window.Chart = function(lang,context, options){
 		}
 
 	} 
-
-	function mergeChartConfig(defaults,userDefined){
-		var returnObj = {};
-		for (var attrname in defaults) { returnObj[attrname] = defaults[attrname]; }
-		for (var attrname in userDefined) {
-			if(typeof(userDefined[attrname]) === "object" && defaults[attrname]) {
-				returnObj[attrname] = mergeChartConfig(defaults[attrname], userDefined[attrname]);
-			} else {
-				returnObj[attrname] = userDefined[attrname];
-			}
-		}
-		return returnObj;
-	}
 
 	//Javascript micro templating by John Resig - source at http://ejohn.org/blog/javascript-micro-templating/
 	  var cache = {};

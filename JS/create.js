@@ -25,12 +25,16 @@ $(document).ready(function(){
 					case "line": var myChart = new Chart(lang,ctx).Line(json.data,{	datasetFill:false, bezierCurve : false}); break;
 					case "bar": var myChart = new Chart(lang,ctx).Bar(json.data,{	datasetFill:false, bezierCurve : false}); break;
 					case "pie": var myChart = new Chart(lang,ctx).Pie(json.data,{	datasetFill:false, bezierCurve : false}); break;
-					case "lineDoubleY": var myChart = new Chart(lang,ctx).LineDoubleY(json.data,{	datasetFill:false, bezierCurve : false}); break;
+					case "lineDoubleY": var myChart = new Chart(lang,ctx).LineDoubleY(json.data,{datasetFill:false,bezierCurve:false});
+					break;
+					case "climate": var myChart = new Chart(lang,ctx).LineDoubleY(json.data,{climate: true,	datasetFill:true, bezierCurve : false});
+					break;
 					case "stackedbar": var myChart = new Chart(lang,ctx).StackedBar(json.data,{	datasetFill:false, bezierCurve : false}); break;
 					case "map":
-						$("#mapChartCanvas").css("display","block");
-						 $("#Legend").css("display","block");
-						var myMapChart = new MapChart("mapChartCanvasMap").Map(json.data,{ width:800, height:400, color_from: '#00ff00', color_to: '#ff0000', legend: "Legend" });
+						$("#map").css("display","block");
+						$("#Legend").css("display","none");
+						var myMapChart = new MapChart("map").Map(json.data,{
+							 color_from: '#00ff00', color_to: '#ff0000' });
 						break;
 					default:
 						$("#ChartCanvas").css("display","block");
@@ -66,7 +70,7 @@ $(document).ready(function(){
 		if (del === true) {
 			$("#Legend").html('');
 		}
-		if (type == "lineDoubleY") {
+		if (type == "lineDoubleY" || type == "climate") {
 			for (var i = 1; i <= 2; i++) {
 				var title = document.createElement('span');
 				title.className = 'title';
@@ -115,4 +119,15 @@ $(document).ready(function(){
 		});
 	}
 	
+	// http://stackoverflow.com/questions/1219860/html-encoding-in-javascript-jquery User: CMS
+	function htmlEncode(value){
+	  //create a in-memory div, set it's inner text(which jQuery automatically encodes)
+	  //then grab the encoded contents back out.  The div never exists on the page.
+	  return $('<div/>').text(value).html();
+	}
+
+	function htmlDecode(value){
+	  return $('<div/>').html(value).text();
+	}
+
 });

@@ -1,11 +1,10 @@
-
 $(function(){
 	var lang = 'en'; // formatting numbers
-	
-	
 	window.MapChart = function(map_id){
 		var zoom;
-        var range_amount;
+		var colors;
+		var data_vars;
+		var dataColors = false;
         
 		this.Map = function(data,options){
 			// defaults:
@@ -17,111 +16,214 @@ $(function(){
                 }
             }
             
+			options.width = $("#"+map_id).width();
+			options.height = $("#"+map_id).height();
+
 			if (!options.color_from) { options.color_from = '#ffff00'; }
 			if (!options.color_to) { options.color_to = '#ff0000'; }
 
-            range_amount = options.range_amount;
-            
-			// set height and width of map
-			$("#"+map_id).width(options.width);
-			$("#"+map_id).height(options.height);
 
-			var geojson_format = new OpenLayers.Format.GeoJSON({
-				'internalProjection': new OpenLayers.Projection("EPSG:900913"),
-				'externalProjection': new OpenLayers.Projection("EPSG:4326")
-			});
-
-			// get midpoint and zoom of the map
 			var midpoint = get_midpoints(data.labels,options);
 			
+
+
 			// get variables like maximum and minimum and step value
             // if colors is not defined
             if (!data.colors) {
-			    var data_vars = get_data_vars(data.values,range_amount);
-            }
-            
+				var range = min_max(data.values);
+			    data_vars = get_data_vars(range,options.range_amount);
+            } else {dataColors = true; }
 			
-			var fromProjection = new OpenLayers.Projection("EPSG:4326");   // Transform from WGS 1984
-			var toProjection   = new OpenLayers.Projection("EPSG:900913"); // to Spherical Mercator Projection
+			// create a map in the "map" div, set the view to a given place and zoom
+			var map = L.map(map_id).setView([midpoint.lat, midpoint.lon], zoom);
+
+			// add an OpenStreetMap tile layer
+			L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+				attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+			}).addTo(map);
 			
-			var map = new OpenLayers.Map(map_id,
-											{ theme:    null,
-												controls: [ 
-														   new OpenLayers.Control.Navigation(),    // direct panning via mouse drag
-														   new OpenLayers.Control.PanZoom(),  
-														]
-											 }
-										);
-			var mapnik         = new OpenLayers.Layer.OSM();
-			map.addLayer(mapnik);
-			
-			// set midpoint and zoom
-			var position       = new OpenLayers.LonLat(midpoint.lon, midpoint.lat).transform( fromProjection, toProjection);
-			map.setCenter(position, zoom);
-			
-			//////// country styles
-			// get colors
-            if (!data.colors) {
-                var styles = new Array();
-                var color = Gradient.get(options.color_from, options.color_to, range_amount);	
-                for (var i = 0; i < range_amount; i++) {
-                    styles[i] = OpenLayers.Util.extend({}, OpenLayers.Feature.Vector.style['default']);
-                    styles[i].fillColor = color[i];
-                    styles[i].strokeWidth = 0; 
-                }
-            }else {
-                var styles = new Array();
-                var color = new Array();
-                for(var i = 0; i < range_amount; i++) {
-                    color[i] =  data.colors[i].color
-                    styles[i] = OpenLayers.Util.extend({}, OpenLayers.Feature.Vector.style['default']);
-                    styles[i].fillColor = color[i];
-                    styles[i].strokeWidth = 0; 
-                }
-            }
-                                         
-			
-			// create layers
-			var levels = new Array();
-			for (var i = 0; i < range_amount; i++) {
-				levels[i] = new OpenLayers.Layer.Vector("Level"+i,{style: styles[i], projection: toProjection});
-				map.addLayer(levels[i]);
+			if (dataColors) {
+				colors = data.colors;
+			} else {
+				colors = Gradient.get(options.color_from, options.color_to, options.range_amount);
 			}
 
-			var countries = data.labels;
-			// pigment countries
-			next_country(0);
 			
+			nextCountry(0);
 			
-			function next_country(i) {
-				// get layer coordinates
-				$.getJSON("getFunctions/layer.php", {country : countries[i]}, function(data){	
-					json_data = '{"'+data.coor;		
-				}).success(function() {					
-					var geojson_format = new OpenLayers.Format.GeoJSON({
-						'internalProjection': new OpenLayers.Projection("EPSG:900913"),
-						'externalProjection': new OpenLayers.Projection("EPSG:4326")
-					});
-					var geometry = geojson_format.read(json_data, 'Geometry');
-					var vector = new OpenLayers.Feature.Vector(geometry);
-					// set layer id
-					vector.id = countries[i];
-									
-					levels[range_id(data_vars,data.values[i],data.colors)].addFeatures(vector);
-					i++;
-					if (i < data.labels.length) {
-						next_country(i);
+			/**
+			 * information window
+			 */
+				var info = L.control();
+
+				info.onAdd = function (map) {
+					this._div = L.DomUtil.create('div', 'mapInfo'); // create a div with a class "info"
+					this.update();
+					return this._div;
+				};
+
+				// method that we will use to update the control based on feature properties passed
+				info.update = function (props) {
+					this._div.innerHTML = '<h4>'+data.title+'</h4>' +  (props ?
+						'<b>' + props.name + '</b><br />' + props.value
+						: 'Hover over a country/state');
+				};
+
+				info.addTo(map);
+
+			/**
+			 * Legend
+			 */
+				var legend = L.control({position: 'bottomright'});
+
+				legend.onAdd = function (map) {
+					var div = L.DomUtil.create('div', 'info mapLegend'),
+						grades = [],
+						labels = [];
+
+						if (dataColors) {
+							grades = colors; // colors[].value & colors[].color
+						} else {
+							// get all grades
+							for (var g = 0; g < colors.length; g++) {
+								grades.push(g ? data_vars.min+g*data_vars.step+1 : data_vars.min);
+							}
+						}
+
+					// loop through grade intervals and generate a label with a colored square for each interval
+					for (var i = 0; i < grades.length; i++) {
+						if (dataColors) {
+							div.innerHTML +=
+								'<i style="background:' + grades[i].color + '"></i> ' +
+								grades[i].value +'<br>';
+						} else {
+							div.innerHTML +=
+								'<i style="background:' + getColor(grades[i]) + '"></i> ' +
+								grades[i] + ((grades[i + 1]-1) ? '&ndash;' + (grades[i + 1]-1) + '<br>' : '+');
+						}
 					}
+
+					return div;
+				};
+
+				legend.addTo(map);
+
+
+			function onEachFeature(feature, layer) {
+				layer.on({
+					mouseover: highlightFeature,
+					mouseout: resetHighlight,
+					click: zoomToFeature
 				});
 			}
 			
-			// create legend if legend is set
-			if (options.legend) {
-				create_legend(options.legend,data_vars,color,data.colors,data.title);			
+			/**
+			 * Draw the next countries (recursive)
+			 * @param c number of next country
+			 */
+			function nextCountry(c) {
+				var label = data.labels[c];
+				var value = data.values[c];
+				$.getJSON("getFunctions/layer.php", {country : label}, function(geoJSONData){
+					var geoJSONcoor = '{"'+geoJSONData.coor;
+					var countryData =  {
+						type: "Feature",
+						properties: {
+							"name": label,
+							"value": value
+						}
+					};
+					countryData.geometry = JSON && JSON.parse(geoJSONcoor) || $.parseJSON(geoJSONcoor);
+					L.geoJson(countryData, {style: style, onEachFeature: onEachFeature}).addTo(map);
+				}).success(function() {
+					if (c < data.labels.length) nextCountry(c+1);
+				});
+
 			}
-		}
+
+			/**
+			 * get the color for a specific value
+			 * @param {float} value
+			 * @return {hex} color
+			 */
+			function getColor(value) {
+				if (!dataColors) {
+					return colors[range_id(value)];
+				}
+				for (var i = 0; i < data.colors.length; i++) {
+					if (data.colors[i].value == value) {
+						return data.colors[i].color;
+					}
+				}
+			}
+
+			/**
+			 * Get the style of country
+			 * @param feature
+			 * @return {object} fillColor,weight,opacity,color,dashArray,fillOpacity
+			 */
+			function style(feature) {
+				return {
+					fillColor: getColor(feature.properties.value),
+					weight: 1,
+					opacity: 1,
+					color: 'white',
+					dashArray: '3',
+					fillOpacity: 0.7
+				};
+			}
 		
-		// get minimum and maximum
+			/**
+			 * Hightlight a Country
+			 */
+			function highlightFeature(e) {
+				var layer = e.target;
+
+				layer.setStyle({
+					weight: 5,
+					color: '#666',
+					dashArray: '',
+					fillOpacity: 0.7
+				});
+
+				if (!L.Browser.ie && !L.Browser.opera) {
+					layer.bringToFront();
+				}
+				info.update(layer.feature.properties);
+			}
+
+			/**
+			 * Reset the highlight
+			 */
+			function resetHighlight(e) {
+				var layer = e.target;
+
+				layer.setStyle({
+					weight: 2,
+					color: 'white',
+					dashArray: '3',
+					fillOpacity: 0.7
+				});
+
+				if (!L.Browser.ie && !L.Browser.opera) {
+					layer.bringToFront();
+				}
+				info.update();
+			}
+
+
+			/**
+			 * Zoom to a Country
+			 */
+			function zoomToFeature(e) {
+				map.fitBounds(e.target.getBounds());
+			}
+
+		/**
+		 * get minimum and maximum
+		 * @param {array} values
+		 * @return {object} min and max
+		 */
 		function min_max(data) {
 			var upperValue = data[0];
 			var lowerValue = data[0];
@@ -133,38 +235,12 @@ $(function(){
 			return {min: lowerValue, max: upperValue};
 		}
 		
-		// get data like maximum, minimum,step,...
-		function get_data_vars(data,range_amount) {
-			// get min and max
-			var range = min_max(data);	
-			var step = Math.ceil((range.max-range.min)/range_amount).toPrecision(2);
-			var OoM = OrderOfMagnitude(step);
-			range.min = Math.floor(range.min/Math.pow(10,OoM))*Math.pow(10,OoM);
-			var i = 0;
-			while ((range.min + range_amount*step) < range.max) {
-				step = Math.ceil((range.max-range.min)/(range_amount-i)).toPrecision(2);
-				i++;
-			}
-
-			return {step: step, min: range.min, max: range.max};
-		}
-		
-		// get number of range for this value 
-		function range_id(data_vars,val,colors) {
-			var id = 0;
-            // if colors is not set (normal)
-            if (!colors) {
-                while (data_vars.min+(id+1)*data_vars.step < val) {
-                   id++;
-                }
-            } else {
-                while (id < range_amount && val != colors[id].value) {
-                    id++;
-                }
-            }
-			return id;
-		}
-		
+		/**
+		 * Get the midpoint and the zoom factor (global variable)
+		 * @param {array} labels
+		 * @param {options} options (needs width and height)
+		 * @return {object} lat, lon
+		 */
 		function get_midpoints(labels,options) {
 			var midpoint,max_lat,min_lat,max_lon,min_lon;
 			
@@ -201,7 +277,10 @@ $(function(){
 		}
 		
 		
-		// midpoint of a country
+		/**
+		 * Get the Midpoint of one country
+		 * Callback {object} lat, lon
+		 */
 		function get_midpoint(label,callback) {
 			$.ajax({
 			  dataType: "json",
@@ -212,56 +291,13 @@ $(function(){
 			   }	 
 			});
 		}
-		
-		
-		// create legend
-		function create_legend(id,data_vars,color,colors,title) {
-			var i = 1;
-			var labels = new Array();
-            // if title is set in index.js
-            if (title) {
-                // create span for charttitle
-                var title_span = document.createElement('span'); 
-                title_span.className = 'legend_title';
-                $("#"+id).append(title_span);
-                // set title text
-                var title_text = document.createTextNode(title);
-                title_span.appendChild(title_text);
-            }
-            if (!colors) {
-                labels[0] = thousand_separator(data_vars.min)+' - '+thousand_separator(parseFloat(data_vars.min)+parseFloat(data_vars.step));
-                while (i < range_amount) {
-                    // create range label
-                    labels[i] = thousand_separator(data_vars.min+(i)*data_vars.step+1)+' - '+thousand_separator(data_vars.min+(i+1)*data_vars.step);
-                    i++;
-                }
-            } else {
-              i = 0;
-              while (i < range_amount) {  
-                  labels[i] = colors[i].value;
-                  i++;
-              }
-            }
-			i = 0;
-			// create legend
-			while (i < range_amount) {
-				var range_title = document.createElement('span');
-				range_title.className = 'range_title';
-				range_title.title = labels[i];
-				range_title.style.borderColor = color[i];
-				$("#"+id).append(range_title);
 
-				var text = document.createTextNode(labels[i]);
-				range_title.appendChild(text);
-				i++;
-			}
-			$("#"+id).css("display","block");
-		}
-		
 		function get_range_amount(data) {
 			var amounts = [];
+			// get min and max
+			var range = min_max(data.values);
 			for (var i = 3; i <= 10; i++) {
-				var data_vars = get_data_vars(data.values,i);
+				var data_vars = get_data_vars(range,i);
 				var amount = [];
 				for (var j = 0; j < i; j++) {
 					amount[j] = 0;
@@ -273,13 +309,49 @@ $(function(){
 				}
 				amounts[i] = amount;
 			}
-			
 			return get_best_distribution(amounts);
+		}
 			
+		/**
+		 * get data like maximum, minimum,step
+		 * @param {object} range (max,min)
+		 * @param {object} max,min,step
+		 * @return {object} step,min,max
+		 */
+		function get_data_vars(range,range_amount) {
+			var step = Math.ceil((range.max-range.min)/range_amount).toPrecision(2);
+			var OoM = OrderOfMagnitude(step);
+			range.min = Math.floor(range.min/Math.pow(10,OoM))*Math.pow(10,OoM);
+			var i = 0;
+			while ((range.min + range_amount*step) < range.max) {
+				step = Math.ceil((range.max-range.min)/(range_amount-i)).toPrecision(2);
+				i++;
+			}
+			return {step: step, min: range.min, max: range.max};
 		}
 		
+		/**
+		 * get number of range for this value
+		 * @param {float} data value
+		 * @return {int} range_id
+		 */
+		function range_id(val) {
+			var id = 0;
+
+            // if colors is not set (normal)
+			while (data_vars.min+(id+1)*data_vars.step < val) {
+			   id++;
+			}
+
+			return id;
+		}
+
+		/**
+		 * Get the best nr of colors
+		 * @param {array} distributions
+		 */
 		function get_best_distribution(distributions) {
-			var best = 1,
+			var best = 0,
 				best_nr;
 			for(var d = 3; d <= 10; d++) {
 				var value = distributions[d];
@@ -288,28 +360,25 @@ $(function(){
 				for (var i = 0; i < value.length; i++) {
 					total += value[i]*i;
 				}
-				var medium = total/value.length;
-				var dis2med = 1/2-medium/len;
-				if (dis2med < best) {
-					best = dis2med;
+				var medium = total/len;
+				if (medium > best) {
+					best = medium;
 					best_nr = d;
 				}
 			}
 			return best_nr;
 		}
-		
+
 		function OrderOfMagnitude(val) {
-			return Math.floor(Math.log(val) / Math.LN10);
+			var OoM = Math.floor(Math.log(val) / Math.LN10);
+			return OoM;
 		}
 		
 		
 		function thousand_separator(input) {
 			return parseFloat(input).toLocaleString(lang);
 		}
-		
-        
-
-		
-		
+		}
 	}
+
 });

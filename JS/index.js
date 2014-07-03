@@ -66,8 +66,8 @@ $(document).ready(function(){
 						break;
 					case "map":
 						$("#map").css("display","block");
-						var myMapChart = new MapChart("mapChartCanvasMap").Map(json.data,{
-							width:800, height:400, color_from: '#00ff00', color_to: '#ff0000', legend: "mapLegend" });
+						var myMapChart = new MapChart("map").Map(json.data,{
+							color_from: '#00ff00', color_to: '#ff0000'});
 					default:
 						// there is no canvas if the type is a map :/ 
 						if (type != "map") {
@@ -102,9 +102,11 @@ $(document).ready(function(){
 		if ($("#vis_"+id).text() == 'Visualize it!') {
 			$("#"+id+"Table").css("display","none");
 			$("#"+id+"ChartCanvas").css("display","block");
-			$("#"+id+"Legend").css("display","block");
-			bool_show_all[id] = false;
-			$("#"+id+"Legend").html("");
+			if (id != "map") {
+				$("#"+id+"Legend").css("display","block");
+				bool_show_all[id] = false;
+				$("#"+id+"Legend").html("");
+			}
 			var data = $("#"+id+"Table").html();
 			$("#"+id+"ChartCanvas").data("columns", []);
 			create_graph(id,data,[],true);
@@ -118,10 +120,12 @@ $(document).ready(function(){
 				scrollTop: $("#"+id+"Chart").offset().top
 			}, 500);
 			if (id == "map") {
-				$("#mapChartCanvasMap").html('');
+				$("#map").html('');
 			}
 			$("#"+id+"ChartCanvas").css("display","none");	
-			$("#"+id+"Legend").css("display","none");			
+			if (id != "map") {
+				$("#"+id+"Legend").css("display","none");
+			}
 			$("#"+id+"Table").css("display","block");
 			$("#save_"+id).css("display","none");
 			$("#vis_"+id).html('Visualize it!');	
@@ -146,6 +150,17 @@ $(document).ready(function(){
 		if (del === true) {
 			$("#"+type).html('');
 		}
+
+		if (data.title) {
+			var title = document.createElement('span');
+			title.className = 'tableTitle';
+			parent.append(title);
+			var text = document.createTextNode(htmlDecode(data.title));
+			title.appendChild(text);
+		}
+
+
+
 		if (type == "lineDoubleYLegend" || type == "climateLegend") {
 			for (var i = 1; i <= 2; i++) {
 				var title = document.createElement('span');
