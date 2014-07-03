@@ -4,9 +4,12 @@ Table2Chart
 
 [Table2Chart](http://github.wikunia.de/Table2Chart)  chooses a chart type automatically depending on your html table.
 It generates line,lineDoubleY,bar,stacked bar,pie and map charts.
-
 Visualize your own html tables [here](http://github.wikunia.de/Table2Chart/create.php)!
 
+I use
+=====
++ [Chart.js](http://www.chartjs.org)
++ [Leaflet.js](http://leafletjs.com)
 
 Table -> Chart
 ======
