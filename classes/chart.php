@@ -497,7 +497,7 @@ class chart extends table2array {
 		
 
 		
-		$return = array("labels"=>$labels,"datasets"=>$datasets);
+		$return = array("labels"=>$labels,"title"=>$this->table_title,"datasets"=>$datasets);
 		
 		return json_encode($return);	
 		
@@ -524,7 +524,7 @@ class chart extends table2array {
 		}
 		
 		
-		$return = array("labels"=>$labels,"datasets"=>$datasets);
+		$return = array("labels"=>$labels,"title"=>$this->table_title,"datasets"=>$datasets);
 		
 		return json_encode($return);	
 		
@@ -551,7 +551,7 @@ class chart extends table2array {
 				$datasets[] = array("fillColor"=>$rgb[$v],"strokeColor"=>$rgb[$v],"pointColor"=>$rgb[$v],"pointStrokeColor"=>$rgb[$v],"title"=>$val_names[$v],"data"=>$data);
 			}
 
-		$return = array("labels"=>$labels,"datasets"=>$datasets);
+		$return = array("labels"=>$labels,"title"=>$this->table_title,"datasets"=>$datasets);
 		
 		return json_encode($return);
 		
@@ -580,7 +580,7 @@ class chart extends table2array {
 				$datasets[] = array("fillColor"=>$rgb[$v],"strokeColor"=>$rgb[$v],"pointColor"=>$rgb[$v],"pointStrokeColor"=>$rgb[$v],"title"=>$values[$v],"data"=>$data);
 			}
 
-		$return = array("labels"=>$labels,"datasets_Y1"=>array($datasets[0]),"datasets_Y2"=>array($datasets[1]));
+		$return = array("labels"=>$labels,"title"=>$this->table_title,"datasets_Y1"=>array($datasets[0]),"datasets_Y2"=>array($datasets[1]));
 		
 		return json_encode($return);
 		
@@ -601,7 +601,7 @@ class chart extends table2array {
 			for ($i = 0; $i < $this->row_count-1; $i++) {
 				$values[] = floatval($this->row_array[$i][$value_col]);
 			}	
-			$return = array("title"=>$value_col,"labels"=>$labels,"values"=>$values);
+			$return = array("title"=>$this->table_title,"columnTitle"=>$value_col,"labels"=>$labels,"values"=>$values);
 		} else { // value column is a string column!
 			for ($i = 0; $i < $this->row_count-1; $i++) {
 				$values[] = $this->row_array[$i][$value_col];
@@ -616,7 +616,7 @@ class chart extends table2array {
 				$colors[] = array("value"=>$unique_value,"color"=>$rgb[$i]);
 				$i++;
 			}
-			$return = array("title"=>$value_col,"labels"=>$labels,"values"=>$values,"colors"=>$colors);
+			$return = array("title"=>$this->table_title,"columnTitle"=>$value_col,"labels"=>$labels,"values"=>$values,"colors"=>$colors);
 		}
 		return json_encode($return);
 		
@@ -655,11 +655,18 @@ class chart extends table2array {
 		for ($i = 0; $i < $this->col_count; $i++) {
 			if ($this->column_structure[$this->column_titles[$i]] == table2array::TYPE_DATE) {
 				for ($j = 0; $j < $this->row_count-1; $j++) {
-					if ($this->lang == "de") {preg_match('#\d{1,2}\.[ ]?(Januar |Februar |MÃ¤rz |April |Mai |Juni |Juli |August |September |Oktober |November |Dezember |((0?[1-9])|10|11|12)\.)[1-2]\d{3}#',$this->row_array[$j][$this->column_titles[$i]], $matches);}
-					if ($this->lang == "en") {preg_match('#\d{1,2}( January | February | March | April | May | June | July | August | September | Oktober | November | December |\.((0?[1-9])|10|11|12)\.)[1-2]\d{3}#',$this->row_array[$j][$this->column_titles[$i]], $matches);}
-					$format_month = trim($matches[1]); // March or 03 or 3
-					list($year,$month,$day) = $this->ddMMYYYY2array($this->row_array[$j][$this->column_titles[$i]],$format_month);
-					$this->row_array[$j][$this->column_titles[$i]] = $day.'.'.$month.'.'.$year;
+					if ($this->lang == "de") {preg_match('#\d{1,2}\.[ ]?(Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember|((0?[1-9])|10|11|12)\.)( ?[1-2]\d{3})?#',
+														 $this->row_array[$j][$this->column_titles[$i]], $matches);}
+					if ($this->lang == "en") {preg_match('#\d{1,2}( January| February| March| April| May| June| July| August| September| October| November| December|\.((0?[1-9])|10|11|12)\.)( ?[1-2]\d{3})?#',$this->row_array[$j][$this->column_titles[$i]], $matches);}
+					if ($matches) {
+						$new_date = $this->row_array[$j][$this->column_titles[$i]];
+						for ($m = 0; $m < 12; $m++) {
+							$new_date = str_replace($this->month[12+$m],$m+1,$new_date);
+						}
+						$new_date = str_replace(' ','.',$new_date);
+						$this->row_array[$j][$this->column_titles[$i]] = str_replace('..','.',$new_date);
+					}
+
 				}
 			}
 		}	

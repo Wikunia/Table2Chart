@@ -91,6 +91,7 @@ $(function(){
 						}
 
 					// loop through grade intervals and generate a label with a colored square for each interval
+					div.innerHTML = '<b>'+data.columnTitle+'</b><br>';
 					for (var i = 0; i < grades.length; i++) {
 						if (dataColors) {
 							div.innerHTML +=
