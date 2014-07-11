@@ -37,7 +37,8 @@ class Color
 	
 	
 	
-	/** Converts a color in HSV color space into an RGB-representation
+	/**
+	* Converts a color in HSV color space into an RGB-representation
 	*
 	* The instrucions on this site were used to implement the algorithm:
 	* 		https://de.wikipedia.org/wiki/HSV-Farbraum#Umrechnung_HSV_in_RGB

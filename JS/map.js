@@ -5,8 +5,69 @@ $(function(){
 		var colors;
 		var data_vars;
 		var dataColors = false;
+		var map;
+		var getFunctionPath;
+		var lastSliderNumber = 0;
+		var thisMapChart = this;
+		var countryLayer = [];
+		var data;
+		var smallestOoM;
+		var smallestNoZ; // smallest number of Zeros at the end
         
-		this.Map = function(data,options){
+		this.update = function(valCol) {
+			$("#mapLegendTitle").html(data.columnTitles[valCol]);
+			for (var i = 0; i < data.labels.length; i++) {
+				for (var key in countryLayer[i]._layers) {
+					countryLayer[i]._layers[key].feature.properties.value = data.values[valCol][i];
+					countryLayer[i]._layers[key].setStyle({
+						fillColor: thisMapChart.getColor(data.values[valCol][i]),
+						weight: 1,
+						opacity: 1,
+						color: 'white',
+						dashArray: '3',
+						fillOpacity: 0.7
+					});
+					break;
+				}
+			}
+		}
+
+		/**
+		 * get the color for a specific value
+		 * @param {float} value
+		 * @return {hex} color
+		 */
+		this.getColor = function(value) {
+			if (!dataColors) {
+				return colors[thisMapChart.range_id(value)];
+			}
+			for (var i = 0; i < data.colors.length; i++) {
+				if (data.colors[i].value == value) {
+					return data.colors[i].color;
+				}
+			}
+		}
+
+		/**
+		 * get number of range for this value
+		 * @param {float} data value
+		 * @return {int} range_id
+		 */
+		this.range_id = function(val) {
+			var id = 0;
+
+            // if colors is not set (normal)
+			while (data_vars.min+(id+1)*data_vars.step < val) {
+			   id++;
+			}
+			return id;
+		}
+
+		this.Map = function(inputData,options,path){
+			data = inputData;
+			getFunctionPath = (typeof path === "undefined") ? "" : path;
+
+
 			// defaults:
             if (data.colors) {
                 options.range_amount = data.colors.length;
@@ -30,18 +91,22 @@ $(function(){
 			// get variables like maximum and minimum and step value
             // if colors is not defined
             if (!data.colors) {
-				var range = min_max(data.values);
-			    data_vars = get_data_vars(range,options.range_amount);
+				var minmax = min_max(data.values);
+			    data_vars = get_data_vars(minmax,options.range_amount);
             } else {dataColors = true; }
 			
+
 			// create a map in the "map" div, set the view to a given place and zoom
-			var map = L.map(map_id).setView([midpoint.lat, midpoint.lon], zoom);
+			map = L.map(map_id).setView([midpoint.lat, midpoint.lon], zoom);
 
 			// add an OpenStreetMap tile layer
-			L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-				attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+			L.tileLayer('http://openmapsurfer.uni-hd.de/tiles/roadsg/x={x}&y={y}&z={z}', {
+				minZoom: 0,
+				maxZoom: 19,
+				attribution: 'Imagery from <a href="http://giscience.uni-hd.de/">GIScience Research Group @ University of Heidelberg</a> &mdash; Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
 			}).addTo(map);
 			
+
 			if (dataColors) {
 				colors = data.colors;
 			} else {
@@ -51,6 +116,10 @@ $(function(){
 			
 			nextCountry(0);
 			
+
+
+
+
 			/**
 			 * information window
 			 */
@@ -65,11 +134,12 @@ $(function(){
 				// method that we will use to update the control based on feature properties passed
 				info.update = function (props) {
 					this._div.innerHTML = '<h4>'+data.title+'</h4>' +  (props ?
-						'<b>' + props.name + '</b><br />' + props.value
+						'<b>' + props.name + '</b><br />' + thousand_separator(props.value)
 						: 'Hover over a country/state');
 				};
 
 				info.addTo(map);
+
 
 			/**
 			 * Legend
@@ -86,21 +156,29 @@ $(function(){
 						} else {
 							// get all grades
 							for (var g = 0; g < colors.length; g++) {
-								grades.push(g ? data_vars.min+g*data_vars.step+1 : data_vars.min);
+								grades.push(data_vars.min+g*data_vars.step);
 							}
 						}
 
 					// loop through grade intervals and generate a label with a colored square for each interval
-					div.innerHTML = '<b>'+data.columnTitle+'</b><br>';
+					var fromLegend = thousand_separator(grades[0],true);
+					if (fromLegend.postfix) {
+						div.innerHTML = '<b id="mapLegendTitle">'+data.columnTitles[0]+'</b> (in '+fromLegend.postfix+')<br>';
+					} else {
+						div.innerHTML = '<b id="mapLegendTitle">'+data.columnTitles[0]+'</b><br>';
+					}
 					for (var i = 0; i < grades.length; i++) {
 						if (dataColors) {
 							div.innerHTML +=
 								'<i style="background:' + grades[i].color + '"></i> ' +
 								grades[i].value +'<br>';
 						} else {
+							var fromLegend = thousand_separator(grades[i],true);
+							var toLegend = thousand_separator(grades[i+1],true);
 							div.innerHTML +=
-								'<i style="background:' + getColor(grades[i]) + '"></i> ' +
-								grades[i] + ((grades[i + 1]-1) ? '&ndash;' + (grades[i + 1]-1) + '<br>' : '+');
+								'<i style="background:' + thisMapChart.getColor(grades[i]) + '"></i> ' +
+								fromLegend.value +
+								(grades[i + 1] ? '&ndash;' + toLegend.value + '<br>' : '+');
 						}
 					}
 
@@ -108,6 +186,8 @@ $(function(){
 				};
 
 				legend.addTo(map);
+
+
 
 
 			function onEachFeature(feature, layer) {
@@ -124,8 +204,8 @@ $(function(){
 			 */
 			function nextCountry(c) {
 				var label = data.labels[c];
-				var value = data.values[c];
-				$.getJSON("getFunctions/layer.php", {country : label}, function(geoJSONData){
+				var value = data.values[0][c];
+				$.getJSON(getFunctionPath+"getFunctions/layer.php", {country : label}, function(geoJSONData){
 					var geoJSONcoor = '{"'+geoJSONData.coor;
 					var countryData =  {
 						type: "Feature",
@@ -135,28 +215,25 @@ $(function(){
 						}
 					};
 					countryData.geometry = JSON && JSON.parse(geoJSONcoor) || $.parseJSON(geoJSONcoor);
-					L.geoJson(countryData, {style: style, onEachFeature: onEachFeature}).addTo(map);
+					countryLayer[c] = L.geoJson(countryData, {style: style, onEachFeature: onEachFeature}).addTo(map);
 				}).success(function() {
-					if (c < data.labels.length) nextCountry(c+1);
+					if (c < data.labels.length) nextCountry(c+1)
+					else {
+						if (data.values.length > 1) {
+							$("#rangeSlider").css("display","block");
+							$("#rangeSlider").ionRangeSlider({values:data.columnTitles,type:'single',onChange: function(obj) {
+									if (obj.fromNumber !== lastSliderNumber) {
+										thisMapChart.update(obj.fromNumber);
+										lastSliderNumber = obj.fromNumber;
+									}
+							}});
+						}
+					}
 				});
 
 			}
 
-			/**
-			 * get the color for a specific value
-			 * @param {float} value
-			 * @return {hex} color
-			 */
-			function getColor(value) {
-				if (!dataColors) {
-					return colors[range_id(value)];
-				}
-				for (var i = 0; i < data.colors.length; i++) {
-					if (data.colors[i].value == value) {
-						return data.colors[i].color;
-					}
-				}
-			}
+
 
 			/**
 			 * Get the style of country
@@ -165,7 +242,7 @@ $(function(){
 			 */
 			function style(feature) {
 				return {
-					fillColor: getColor(feature.properties.value),
+					fillColor: thisMapChart.getColor(feature.properties.value),
 					weight: 1,
 					opacity: 1,
 					color: 'white',
@@ -181,7 +258,7 @@ $(function(){
 				var layer = e.target;
 
 				layer.setStyle({
-					weight: 5,
+					weight: 2,
 					color: '#666',
 					dashArray: '',
 					fillOpacity: 0.7
@@ -200,7 +277,7 @@ $(function(){
 				var layer = e.target;
 
 				layer.setStyle({
-					weight: 2,
+					weight: 1,
 					color: 'white',
 					dashArray: '3',
 					fillOpacity: 0.7
@@ -226,13 +303,15 @@ $(function(){
 		 * @return {object} min and max
 		 */
 		function min_max(data) {
-			var upperValue = data[0];
-			var lowerValue = data[0];
-			
-			for (var i=1; i<data.length; i++){
-				if (data[i] > upperValue) { upperValue = data[i]; }
-				if (data[i] < lowerValue) { lowerValue = data[i]; }
+			var upperValue = data[0][0];
+			var lowerValue = data[0][0];
+			for (var d = 0; d < data.length; d++) {
+				for (var i=1; i<data[d].length; i++){
+					if (data[d][i] > upperValue) { upperValue = data[d][i]; }
+					if (data[d][i] < lowerValue) { lowerValue = data[d][i]; }
+				}
 			}
+
 			return {min: lowerValue, max: upperValue};
 		}
 		
@@ -286,7 +365,7 @@ $(function(){
 			$.ajax({
 			  dataType: "json",
 			  async: false,
-			  url: "getFunctions/latlon.php?country="+label,
+			  url: getFunctionPath+"getFunctions/latlon.php?country="+label,
 			  success: function(midpoint) {
 				callback({lat: midpoint.lat, lon: midpoint.lon});
 			   }	 
@@ -296,13 +375,13 @@ $(function(){
 		function get_range_amount(data) {
 			var amounts = [];
 			// get min and max
-			var range = min_max(data.values);
+			var minmax = min_max(data.values);
 			for (var i = 3; i <= 10; i++) {
-				var data_vars = get_data_vars(range,i);
+				var data_vars = get_data_vars(minmax,i);
 				var amount = [];
 				for (var j = 0; j < i; j++) {
 					amount[j] = 0;
-					$.each(data.values, function(index,value) {
+					$.each(data.values[0], function(index,value) {
 						if (value > (data_vars.min+data_vars.step*j) && value < (data_vars.min+data_vars.step*(j+1))) {
 							amount[j]++;
 						}
@@ -322,30 +401,31 @@ $(function(){
 		function get_data_vars(range,range_amount) {
 			var step = Math.ceil((range.max-range.min)/range_amount).toPrecision(2);
 			var OoM = OrderOfMagnitude(step);
+
 			range.min = Math.floor(range.min/Math.pow(10,OoM))*Math.pow(10,OoM);
+
 			var i = 0;
 			while ((range.min + range_amount*step) < range.max) {
 				step = Math.ceil((range.max-range.min)/(range_amount-i)).toPrecision(2);
 				i++;
 			}
+
+
+			smallestOoM = OrderOfMagnitude(range.min+step);
+			for(var i=1; i < smallestOoM; i++) {
+				if ((range.min+step)%(10*i) !== 0) {
+					smallestNoZ = i;
+					break;
+				}
+			}
+
+
+
 			return {step: step, min: range.min, max: range.max};
 		}
 		
-		/**
-		 * get number of range for this value
-		 * @param {float} data value
-		 * @return {int} range_id
-		 */
-		function range_id(val) {
-			var id = 0;
 
-            // if colors is not set (normal)
-			while (data_vars.min+(id+1)*data_vars.step < val) {
-			   id++;
-			}
 
-			return id;
-		}
 
 		/**
 		 * Get the best nr of colors
@@ -376,7 +456,36 @@ $(function(){
 		}
 		
 		
-		function thousand_separator(input) {
+		function thousand_separator(input,legend) {
+			legend = (typeof legend === "undefined") ? false : legend;
+			var postfix ='';
+			switch(smallestNoZ) {
+				case 3:	case 4:	case 5:
+					smallestNoZ = 3;
+					postfix = "thousand";
+					break;
+				case 6:	case 7:	case 8:
+					smallestNoZ = 6;
+					postfix = "million";
+					break;
+				case 9:	case 10:	case 11:
+					smallestNoZ = 9;
+					postfix = "billion";
+					break;
+				case 12:	case 13:	case 14:
+					smallestNoZ = 12;
+					postfix = "trillion";
+					break;
+			}
+			if (postfix != '') {
+				if (legend) {
+					return {value:parseFloat(input/Math.pow(10,smallestNoZ)).toLocaleString(lang),postfix: postfix};
+				}
+				return parseFloat(input/Math.pow(10,smallestNoZ)).toLocaleString(lang)+' '+postfix;
+			}
+			if (legend) {
+				return  {value:parseFloat(input).toLocaleString(lang),postfix:postfix};
+			}
 			return parseFloat(input).toLocaleString(lang);
 		}
 		}

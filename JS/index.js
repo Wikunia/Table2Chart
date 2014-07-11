@@ -27,7 +27,7 @@ $(document).ready(function(){
 				switch(json.type) {
 					case "pie": 
 						var ctx = $("#pieChartCanvas").get(0).getContext("2d");
-						var myChart = new Chart(lang,ctx).Pie(json.data,{
+						var myChart = new Chart(lang,ctx).Pie(json.data.data,{
 								animationSteps : 50,
 								animationEasing : "easeOutCirc",
 								animateRotate : true,
@@ -66,6 +66,7 @@ $(document).ready(function(){
 						break;
 					case "map":
 						$("#map").css("display","block");
+						console.log(json.data);
 						var myMapChart = new MapChart("map").Map(json.data,{
 							color_from: '#00ff00', color_to: '#ff0000'});
 					default:
@@ -120,7 +121,7 @@ $(document).ready(function(){
 				scrollTop: $("#"+id+"Chart").offset().top
 			}, 500);
 			if (id == "map") {
-				$("#map").html('');
+				$("#map").css('display','none');
 			}
 			$("#"+id+"ChartCanvas").css("display","none");	
 			if (id != "map") {

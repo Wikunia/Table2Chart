@@ -24,7 +24,7 @@ $(document).ready(function(){
 				switch(json.type) {
 					case "line": var myChart = new Chart(lang,ctx).Line(json.data,{	datasetFill:false, bezierCurve : false}); break;
 					case "bar": var myChart = new Chart(lang,ctx).Bar(json.data,{	datasetFill:false, bezierCurve : false}); break;
-					case "pie": var myChart = new Chart(lang,ctx).Pie(json.data,{	datasetFill:false, bezierCurve : false}); break;
+					case "pie": var myChart = new Chart(lang,ctx).Pie(json.data.data,{	datasetFill:false, bezierCurve : false}); break;
 					case "lineDoubleY": var myChart = new Chart(lang,ctx).LineDoubleY(json.data,{datasetFill:false,bezierCurve:false});
 					break;
 					case "climate": var myChart = new Chart(lang,ctx).LineDoubleY(json.data,{climate: true,	datasetFill:true, bezierCurve : false});

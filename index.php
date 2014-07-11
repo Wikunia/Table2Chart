@@ -200,9 +200,6 @@
 					<li>one country column</li>
 					<li>one label or value column</li>
 				</ul>
-				<div id="mapLegend" class="legend">
-					
-				</div>
 			</div>
 			<div class="canvasWrapper">
 				<div id="map" class="chart"></div>

@@ -12,7 +12,6 @@
 *	$lang = "de" or "en" 
 * 		-> important for values 
 *			de -> 7,3
-*			en -> 7.3
 *
 *
 * To generate these arrays, the commands are
@@ -42,6 +41,7 @@
 		public $month;
 	
 		public $table;
+		public $table_title;
 		public $column_titles;
 		public $row_count;
 		public $col_count;
@@ -81,6 +81,15 @@
 		
 		/**
 		 *  main function creates all arrays 
+		 *  column_titles
+		 *	row_count
+		 *	col_count
+		 *	col_count_unique
+		 *	row_array
+		 *	col_array
+		 *	type_array
+		 *	array_structure
+		 *	column_structure
 		 *  @param string $table html table
 		 *  @param string $lang (de|en)
 		*/
@@ -89,11 +98,11 @@
 			// Get months
 			switch($lang) {
 				case "en": 
-					$this->month = array("Jan","Feb","Mar","Apr","Jun","Jul","Aug","Sep","Oct","Nov","Dec",
+					$this->month = array("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec",
 										 "January","February","March","April","May","June","July","August","September","October","November","December");
 					break;
 				case "de": 
-					$this->month = array("Jan","Feb","Mär","Apr","Jun","Jul","Aug","Sep","Okt","Nov","Dez",
+					$this->month = array("Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez",
 										 "Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember");
 					break;
 			}
@@ -102,6 +111,8 @@
 			$this->table = $table;
 			$this->lang = $lang;
 			
+			$this->table_title = $this->getTableTitle();
+
 			// Remove all html comments
 			$this->removeComments();
 			
@@ -142,7 +153,7 @@
 		 * Remove all comments
 		 */
 		function removeComments() {
-			$this->table = preg_replace('/<!--(.*?)-->/s','',$this->table);			
+			$this->table = preg_replace('/<!--(.*?)-->/s','',$this->table);
 		}
 		
 		/**
@@ -152,7 +163,7 @@
 		function get_column_titles() {
 			// update $this->table (only text inside <table>)
 			$table_start = preg_split("/<table/i", $this->table);
-			$this->t2aConsole[] = array(155,json_encode($table_start));
+			// $this->t2aConsole[] = array(155,json_encode($table_start));
 			$table_start = substr($table_start[1],strpos($table_start[1],">")+1);
 			$table = preg_split("/<\/table>/i", $table_start);
 			$this->table = $table[0];
@@ -161,12 +172,12 @@
 			$tr_start = preg_split("/<tr/i", $this->table);
 			$tr_start = substr($tr_start[1],strpos($tr_start[1],">")+1);
 			$tr = preg_split("/<\/tr>/i", $tr_start);
-			$ths = preg_split("/<th/i",str_replace("</th>","",$tr[0]));
+			$ths = preg_split("/<th/i",str_ireplace("</th>","",$tr[0]));
 			$this->col_count = count($ths)-1;
 			
 			// no <th> tags
 			if ($this->col_count == 0) { 
-				$ths = preg_split("/<td/i",str_replace("</td>","",$tr[0]));
+				$ths = preg_split("/<td/i",str_ireplace("</td>","",$tr[0]));
 				$this->col_count = count($ths)-1;
 			}
 			
@@ -178,6 +189,7 @@
 			}
 			// if table has a two-column based table (year,inhabitans),(year,inhabitans) create unique titles (delete redundant titles)
 			$result = $this->get_unique_titles($result); 
+			$this->t2aConsole[] = array(197,json_encode($result));
 			return $result;
 		}
 		
@@ -228,13 +240,13 @@
 						$col_array = array();
 						$row = substr($row,strpos($row,">")+1);
 
-						$this->t2aConsole[] = array(225,json_encode($cols));
 						$cols = preg_split("/<td/i",$row);
 						$cols = array_slice($cols,1); // remove the first (before <td)
 						// check if this $col is in the current "single table"
 						for ($c = $col_min; $c < $col_max; $c++) {
 							$col = $cols[$c];
-							$this->t2aConsole[] = array(228,$col);
+
+
 							// some columns have a colspan so the entries have to be colspan times in the array
 							$colspan = 1;
 							preg_match('#colspan="(.*)"#',substr($col,0,strpos($col,">")),$match_colspan);
@@ -247,30 +259,36 @@
 
 							$col = $this->readable_html($col);
 
-						
 
 							// in some entries there is sth. like '< 0.1' so a number 
 							$col = str_replace('&lt;','<',$col);
 
 							$bool_date = false;
-							if (($this->lang == "de") and (preg_match('#\d{1,2}\.[ ]?(Januar |Februar |März |April |Mai |Juni |Juli |August |September |Oktober |November |Dezember |((0?[1-9])|10|11|12)\.)[1-2]\d{3}#',$col))) {
+							if (($this->lang == "de") and (preg_match('#^\d{1,2}\.[ ]?(Januar |Februar |März |April |Mai |Juni |Juli |August |September |Oktober |November |Dezember |((0?[1-9])|10|11|12))(\.[1-2]\d{3})?$#',$col))) {
 								$bool_date = true;
 							}
-							if (($this->lang == "en") and (preg_match('#\d{1,2}( January | February | March | April | May | June | July | August | September | Oktober | November | December |\.((0?[1-9])|10|11|12)\.)[1-2]\d{3}#',$col))) {
+							if (($this->lang == "en") and (preg_match('#^\d{1,2}( January | February | March | April | May | June | July | August | September | October | November | December |\.((0?[1-9])|10|11|12))(\.[1-2]\d{3})?$#',$col))) {
 								$bool_date = true;
 							}
 
-							// no letter and no date
-							if ((!preg_match('#[a-zA-Z]#', $col)) and ($bool_date === false)) { 
+							$col = trim($col);
+
+							// no date
+							if ($bool_date === false) {
 								// remove the thousand separators
 								if ($this->lang == "de") {
-									$col = str_replace('.','',$col); 
-									$col = str_replace(',','.',$col); 
+									$colNumber = str_replace('.','',$col);
+									$colNumber = str_replace(',','.',$colNumber);
 								}
 								if ($this->lang == "en") {
-									$col = str_replace(',','',$col); 
-								}									
+									$colNumber = str_replace(',','',$col);
+								}
+
+								if (is_numeric($colNumber)) {
+									$col = $colNumber;
+								}
 							}
+
 
 							// delete "<" number (example: < 0.1 => 0.1 !important for the correct column_structure) 
 							$smaller = trim(preg_replace('/</','',$col,1)); // replace only once
@@ -287,7 +305,7 @@
 								}
 							}
 						}
-						$this->t2aConsole[] = array(285,json_encode($col_array));
+						$this->t2aConsole[] = array(308,json_encode($col_array));
 						if (!empty($col_array)) {
 							$row_array[$i] = $col_array;
 							$i++;
@@ -300,7 +318,6 @@
 				// more columns than rows => transpose table
 				if ($this->col_count_unique > $this->row_count+1) {
 					$this->transpose_table();
-					$this->row_array = $this->col_array;
 				}
 		}
 		
@@ -342,9 +359,9 @@
 		*/
 		function get_type($rowNr,$colNr,$col) { 
 			
-			// Date format (de: 12.07.1932,12.7.1932,12. Juli 1932) || (en: 12.07.1932,12.7.1932,12 July 1932)
-			if ((($this->lang == "de") and (preg_match('#\d{1,2}\.[ ]?(Januar |Februar |März |April |Mai |Juni |Juli |August |September |Oktober |November |Dezember |((0?[1-9])|10|11|12)\.)[1-2]\d{3}#',$this->row_array[$rowNr][$col]))) or
-				(($this->lang == "en") and (preg_match('#\d{1,2}( January | February | March | April | May | June | July | August | September | Oktober | November | December |\.((0?[1-9])|10|11|12)\.)[1-2]\d{3}#',$this->row_array[$rowNr][$col])))) {
+			// Date format (de: 12.07.1932,12.7.1932,12. Juli 1932 or 12. Juli) || (en: 12.07.1932,12.7.1932,12 July 1932 or 12 July)
+			if ((($this->lang == "de") and (preg_match('#^\d{1,2}\.[ ]?(Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember|((0?[1-9])|10|11|12)\.)( ?[1-2]\d{3})?$#',$this->row_array[$rowNr][$col]))) or
+				(($this->lang == "en") and (preg_match('#^\d{1,2}( January| February| March| April| May| June| July| August| September| October| November| December|\.((0?[1-9])|10|11|12)\.)( ?[1-2]\d{3})?$#',$this->row_array[$rowNr][$col])))) {
 				return self::TYPE_DATE;
 			}
 			
@@ -564,7 +581,7 @@
 				$this->column_titles[] = $col;
 			}
 			$this->column_titles = $this->get_unique_titles($this->column_titles);
-			
+			$this->row_array = $this->col_array;
 		}
 		
 		/**
@@ -657,4 +674,19 @@
 			return false;
 		}
 		
+
+		/**
+		 * Get title of the table
+		 * <h..></h1>|<b> before the table starts
+		 * @return title of table
+		 */
+		function getTableTitle() {
+			$tableHeader = preg_split("/<table/i",$this->table);
+			$tableHeader = $tableHeader[0];
+			$tableHeader = preg_replace('/<(\/)?(h[1-6]|b)>/','<${1}h>',$tableHeader);
+			$posHeader = strrpos($tableHeader,"<h>");
+			$posEndHeader = strpos($tableHeader,"</h>",$posHeader);
+			return substr($tableHeader,$posHeader+3,$posEndHeader-$posHeader-3);
+
+		}
 	}

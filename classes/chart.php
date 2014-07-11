@@ -119,13 +119,19 @@ class chart extends table2array {
 					$graph["type"] = "map";
 					$graph["val_type"] = table2array::TYPE_NUMBER;
 					$graph["label"] = $this->label_columns[0];
-					$graph["value"] = $this->value_columns[0]; 
+					$graph["values"] = array($this->value_columns[0]);
 				} else {
 					$graph = $this->line_or_bar();
 				}
 			}
 		}		
 		else { // more than 1 value column
+			if ($this->column_structure[$this->label_columns[0]] == table2array::TYPE_COUNTRY) {
+					$graph["type"] = "map";
+					$graph["val_type"] = table2array::TYPE_NUMBER;
+					$graph["label"] = $this->label_columns[0];
+					$graph["values"] = $this->value_columns;
+			} else {
 			// line or bar
 			// check if each column is percentage or a normal number
 			$checksum = 0;
@@ -239,6 +245,7 @@ class chart extends table2array {
 					
 			}
 		}
+		}
 	} else {
 		// line chart
 		if (count($this->label_columns) == 0) {
@@ -316,7 +323,7 @@ class chart extends table2array {
 				return array('lineDoubleY',$this->create_json_lineDoubleY($graph["label"],$graph["value"])); 
 				break;
 			case "map":
-				return array('map',$this->create_json_map($graph["label"],$graph["value"],$graph["val_type"])); 
+				return array('map',$this->create_json_map($graph["label"],$graph["values"],$graph["val_type"]));
 				break;
 		}
 	}
@@ -425,7 +432,7 @@ class chart extends table2array {
 			}
 		}
 		
-		return json_encode($return);
+		return json_encode(array("title"=>$this->table_title,"data"=>$return));
 	}	
 	
 	
@@ -588,7 +595,7 @@ class chart extends table2array {
 	
 	}
 	
-	function create_json_map($label_col,$value_col,$val_type) {
+	function create_json_map($label_col,$value_cols,$val_type) {
 	
 	
 	
@@ -598,13 +605,19 @@ class chart extends table2array {
 			}
 		$values = array();
 		if ($val_type == table2array::TYPE_NUMBER) {
-			for ($i = 0; $i < $this->row_count-1; $i++) {
-				$values[] = floatval($this->row_array[$i][$value_col]);
+			for ($j = 0; $j < count($value_cols); $j++) {
+				$values[$j] = array();
+				for ($i = 0; $i < $this->row_count-1; $i++) {
+					$values[$j][] = floatval($this->row_array[$i][$value_cols[$j]]);
+				}
 			}	
-			$return = array("title"=>$this->table_title,"columnTitle"=>$value_col,"labels"=>$labels,"values"=>$values);
+			$return = array("title"=>$this->table_title,"columnTitles"=>$value_cols,"labels"=>$labels,"values"=>$values);
 		} else { // value column is a string column!
-			for ($i = 0; $i < $this->row_count-1; $i++) {
-				$values[] = $this->row_array[$i][$value_col];
+			for ($j = 0; $j < count($value_cols); $j++) {
+				$values[$j] = array();
+				for ($i = 0; $i < $this->row_count-1; $i++) {
+					$values[$j][] = $this->row_array[$i][$value_cols[$j]];
+				}
 			}
 			$unique_values = array_unique($values);
 			
@@ -616,7 +629,7 @@ class chart extends table2array {
 				$colors[] = array("value"=>$unique_value,"color"=>$rgb[$i]);
 				$i++;
 			}
-			$return = array("title"=>$this->table_title,"columnTitle"=>$value_col,"labels"=>$labels,"values"=>$values,"colors"=>$colors);
+			$return = array("title"=>$this->table_title,"columnTitles"=>$value_cols,"labels"=>$labels,"values"=>$values,"colors"=>$colors);
 		}
 		return json_encode($return);
 		
@@ -655,9 +668,9 @@ class chart extends table2array {
 		for ($i = 0; $i < $this->col_count; $i++) {
 			if ($this->column_structure[$this->column_titles[$i]] == table2array::TYPE_DATE) {
 				for ($j = 0; $j < $this->row_count-1; $j++) {
-					if ($this->lang == "de") {preg_match('#\d{1,2}\.[ ]?(Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember|((0?[1-9])|10|11|12)\.)( ?[1-2]\d{3})?#',
+					if ($this->lang == "de") {preg_match('#^\d{1,2}\.[ ]?(Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember|((0?[1-9])|10|11|12)\.)( ?[1-2]\d{3})?$#',
 														 $this->row_array[$j][$this->column_titles[$i]], $matches);}
-					if ($this->lang == "en") {preg_match('#\d{1,2}( January| February| March| April| May| June| July| August| September| October| November| December|\.((0?[1-9])|10|11|12)\.)( ?[1-2]\d{3})?#',$this->row_array[$j][$this->column_titles[$i]], $matches);}
+					if ($this->lang == "en") {preg_match('#^\d{1,2}( January| February| March| April| May| June| July| August| September| October| November| December|\.((0?[1-9])|10|11|12)\.)( ?[1-2]\d{3})?$#',$this->row_array[$j][$this->column_titles[$i]], $matches);}
 					if ($matches) {
 						$new_date = $this->row_array[$j][$this->column_titles[$i]];
 						for ($m = 0; $m < 12; $m++) {
