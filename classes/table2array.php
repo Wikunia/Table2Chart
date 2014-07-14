@@ -32,7 +32,6 @@
 * license: MIT license
 */
 
-
 	
 	class table2array {
 		public $t2aConsole;

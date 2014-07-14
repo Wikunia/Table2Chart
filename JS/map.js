@@ -14,6 +14,8 @@ $(function(){
 		var smallestOoM;
 		var smallestNoZ; // smallest number of Zeros at the end
         
+
+
 		this.update = function(valCol) {
 			$("#mapLegendTitle").html(data.columnTitles[valCol]);
 			for (var i = 0; i < data.labels.length; i++) {
@@ -57,7 +59,7 @@ $(function(){
 			var id = 0;
 
             // if colors is not set (normal)
-			while (data_vars.min+(id+1)*data_vars.step < val) {
+			while (data_vars.min+(id+1)*data_vars.step <= val) {
 			   id++;
 			}
 			return id;
