@@ -219,7 +219,7 @@ $(function(){
 					countryData.geometry = JSON && JSON.parse(geoJSONcoor) || $.parseJSON(geoJSONcoor);
 					countryLayer[c] = L.geoJson(countryData, {style: style, onEachFeature: onEachFeature}).addTo(map);
 				}).success(function() {
-					if (c < data.labels.length) nextCountry(c+1)
+					if (c < data.labels.length-1) nextCountry(c+1)
 					else {
 						if (data.values.length > 1) {
 							$("#rangeSlider").css("display","block");
