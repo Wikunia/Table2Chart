@@ -29,6 +29,7 @@ class chart extends table2array {
 		
 		private $value_columns;
 		private $label_columns;
+		private $rank_columns;
 		private $nut_label_columns;
 	
 	/**
@@ -65,6 +66,10 @@ class chart extends table2array {
 				if (($c_column_struct == table2array::TYPE_NUMBER) or ($c_column_struct == table2array::TYPE_PERCENTAGE)) { 
 					$this->value_columns[] = $this->column_titles[$i];
 				}
+				if ($c_column_struct == table2array::TYPE_RANK) {
+					$this->rank_columns[] = $this->column_titles[$i];
+				}
+
 				// label
 				$labels_types = [table2array::TYPE_STRING,table2array::TYPE_YEAR,table2array::TYPE_DATE,table2array::TYPE_MONTH,table2array::TYPE_COUNTRY];
 				if (in_array($c_column_struct,$labels_types)) { 
@@ -107,15 +112,21 @@ class chart extends table2array {
 				if (round($checksum,2) == 100) { // pie chart
 					$graph["type"] = "pie";
 					$graph["label"] = $this->label_columns[0];
-					$graph["value"][] = $this->value_columns[0]; 
+					$graph["values"][] = $this->value_columns[0];
 				}
 				else {
 					$graph = $this->line_or_bar();
 				}
 			}
-			else {
-				// country labels
-				if ($this->column_structure[$this->label_columns[0]] == table2array::TYPE_COUNTRY) {
+			else { // no percentage
+				if (count($this->rank_columns) > 0) {
+					$graph["type"] = "bar";
+					$graph["val_type"] = table2array::TYPE_NUMBER;
+					$graph["label"] = $this->label_columns[0];
+					$value_columns = $this->value_columns;
+					$value_columns[] = $this->rank_columns[0];
+					$graph["values"] = $value_columns;
+				} else if ($this->column_structure[$this->label_columns[0]] == table2array::TYPE_COUNTRY) { //country column
 					$graph["type"] = "map";
 					$graph["val_type"] = table2array::TYPE_NUMBER;
 					$graph["label"] = $this->label_columns[0];
@@ -147,7 +158,7 @@ class chart extends table2array {
 							$graph["type"] = "bar";
 							$graph["label"] = $this->nut_label_columns[0];
 							for ($i = 0; $i < count($this->value_columns); $i++) {
-								$graph["value"][] = $this->value_columns[$i];
+								$graph["values"][] = $this->value_columns[$i];
 							}
 							$graph["special"] = "nut";
 					}
@@ -160,7 +171,7 @@ class chart extends table2array {
 						$graph["type"] = "bar";
 						$graph["label"] = $this->nut_label_columns[0];
 						for ($i = 0; $i < count($this->value_columns); $i++) {
-							$graph["value"][] = $this->value_columns[$i];
+							$graph["values"][] = $this->value_columns[$i];
 						}
 						$graph["special"] = "nut";
 					}						
@@ -191,14 +202,14 @@ class chart extends table2array {
 						$graph["type"] = "bar";
 						$graph["label"] = $this->label_columns[0];
 						for ($i = 0; $i < count($this->value_columns); $i++) {
-							$graph["value"][] = $this->value_columns[$i];
+							$graph["values"][] = $this->value_columns[$i];
 						}
 					}
 					else {
 						$graph["type"] = "stackedbar";
 						$graph["label"] = $this->label_columns[0];
 						for ($i = 0; $i < count($this->value_columns); $i++) {
-							$graph["value"][] = $this->value_columns[$i];
+							$graph["values"][] = $this->value_columns[$i];
 							$graph["label_value"][] = $this->value_columns[$i];
 						}						
 					}					
@@ -226,7 +237,7 @@ class chart extends table2array {
 						$graph["type"] = "line";
 						$graph["label"] = $this->label_columns[$i];
 						for ($j = 0; $i < count($number_columns); $j++) {
-							$graph["value"][] = $number_columns[$j];
+							$graph["values"][] = $number_columns[$j];
 						}	
 						break;
 					}
@@ -237,7 +248,7 @@ class chart extends table2array {
 					$graph["type"] = "bar";
 					$graph["label"] = $this->label_columns[0];
 					for ($i = 0; $i < count($number_columns); $i++) {
-							$graph["value"][] = $number_columns[$i];
+							$graph["values"][] = $number_columns[$i];
 						}						
 				}
 					
@@ -285,10 +296,10 @@ class chart extends table2array {
 					$graph["val_type"] = table2array::TYPE_STRING;
 					if ($this->column_structure[$this->label_columns[0]] == table2array::TYPE_COUNTRY) {
 						$graph["label"] = $this->label_columns[0];
-						$graph["value"] = $this->label_columns[1]; 
+						$graph["values"] = $this->label_columns[1];
 					} else {
 						$graph["label"] = $this->label_columns[1];
-						$graph["value"] = $this->label_columns[0]; 
+						$graph["values"] = $this->label_columns[0];
 					}
 					
 					
@@ -299,28 +310,28 @@ class chart extends table2array {
 	}	
 		
 		
-		$graph["value_names"] = $graph["value"];
+		$graph["value_names"] = $graph["values"];
 		
 
 		
 		switch($graph["type"]) {
 			case "line": 
-				return array('line',$this->create_json_line($graph["label"],$graph["value"],$graph["value_names"])); 
+				return array('line',$this->create_json_line($graph["label"],$graph["values"],$graph["value_names"]));
 				break;
 			case "pie":
-				return array('pie',$this->create_json_pie($graph["label"],$graph["value"])); // value can't be an array
+				return array('pie',$this->create_json_pie($graph["label"],$graph["values"])); // value can't be an array
 				break;
 			case "bar":
-				return array('bar',$this->create_json_bar($graph["label"],$graph["value"],$graph["value_names"],$graph["special"])); 
+				return array('bar',$this->create_json_bar($graph["label"],$graph["values"],$graph["value_names"],$graph["special"]));
 				break;
 			case "stackedbar":
-				return array('stackedbar',$this->create_json_stackedbar($graph["label"],$graph["value"],$graph["label_value"])); 
+				return array('stackedbar',$this->create_json_stackedbar($graph["label"],$graph["values"],$graph["label_value"]));
 				break;
 			case "climate":
-				return array('climate',$this->create_json_lineDoubleY($graph["label"],$graph["value"])); 
+				return array('climate',$this->create_json_lineDoubleY($graph["label"],$graph["values"]));
 				break;
 			case "lineDoubleY":
-				return array('lineDoubleY',$this->create_json_lineDoubleY($graph["label"],$graph["value"])); 
+				return array('lineDoubleY',$this->create_json_lineDoubleY($graph["label"],$graph["values"]));
 				break;
 			case "map":
 				return array('map',$this->create_json_map($graph["label"],$graph["values"],$graph["val_type"]));
@@ -338,7 +349,7 @@ class chart extends table2array {
 					// line
 					$graph["type"] = "line";
 					$graph["label"] = $this->label_columns[$i];
-					$graph["value"] = $this->value_columns;
+					$graph["values"] = $this->value_columns;
 					
 					if (count($this->value_columns) == 2) {
 						$unit_1 = $this->get_value_unit($this->value_columns[0]);
@@ -363,7 +374,7 @@ class chart extends table2array {
 								$this->value_columns[1] = $rainCol;
 								$unit_2 = $rainUnit;	
 							}
-							$graph["value"] = $this->value_columns;
+							$graph["values"] = $this->value_columns;
 						}
 					}
 					return $graph;
@@ -373,7 +384,7 @@ class chart extends table2array {
 		// bar
 		$graph["type"] = "bar";
 		$graph["label"] = $this->label_columns[0];
-		$graph["value"] = $this->value_columns;		
+		$graph["values"] = $this->value_columns;
 		return $graph;
 	}
 		

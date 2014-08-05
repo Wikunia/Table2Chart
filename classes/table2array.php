@@ -32,6 +32,7 @@
 * license: MIT license
 */
 
+
 	
 	class table2array {
 		public $t2aConsole;
@@ -79,7 +80,7 @@
 		}
 		
 		/**
-		 *  main function creates all arrays 
+		 *  main function creates all arrays ($this->)
 		 *  column_titles
 		 *	row_count
 		 *	col_count
@@ -382,7 +383,7 @@
 				
 
 			if (is_numeric($this->row_array[$rowNr][$col])) {
-				if ($this->entryInStr(strtolower($this->column_titles[$colNr]),array("rank","rang","nr.","no.") == true))
+				if ($this->entryInStr(strtolower($this->column_titles[$colNr]),array("rank","rang","nr.","no.")) == true)
 				{
 					return self::TYPE_RANK; 
 				}
