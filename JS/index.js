@@ -18,13 +18,16 @@ $(document).ready(function(){
 		}
 		
 			
-		
+		console.log(JSON.stringify(value_columns));
+		console.log(table);
+		console.log(lang);
 		$.post("getdata.php", {table: table,lang: lang,value: JSON.stringify(value_columns)}, function(json)  {
 			if (json) {	
 				
 				json.data = JSON.parse(json.data);
+				console.log(json);
 				
-				switch(json.type) {
+				switch(json.type) {	
 					case "pie": 
 						var ctx = $("#pieChartCanvas").get(0).getContext("2d");
 						var myChart = new Chart(lang,ctx).Pie(json.data.data,{
@@ -37,18 +40,18 @@ $(document).ready(function(){
 						break;		
 					case "line": 
 						var ctx = $("#lineChartCanvas").get(0).getContext("2d");
-						var myChart = new Chart(lang,ctx).Line(json.data,{	animation: animation, datasetFill:false, bezierCurve : false});
+						var myChart = new Chart(lang,ctx).Line(json.data,{	animation: animation, datasetFill:false, bezierCurve : false}); 
 						if (value_columns.length == 0 && bool_show_all[type] === false) { legend("lineLegend", json.data); }
 						break;
 					case "lineDoubleY": 
 						var ctx = $("#lineDoubleYChartCanvas").get(0).getContext("2d");
-						var myChart = new Chart(lang,ctx).LineDoubleY(json.data,{	animation: animation, datasetFill:false, bezierCurve : false});
+						var myChart = new Chart(lang,ctx).LineDoubleY(json.data,{	animation: animation, datasetFill:false, bezierCurve : false}); 
 						if (value_columns.length == 0 && bool_show_all[type] === false) { legend("lineDoubleYLegend", json.data); }
 						break;
 					case "climate": 
 						var ctx = $("#climateChartCanvas").get(0).getContext("2d");
 						var myChart = new Chart(lang,ctx).LineDoubleY(json.data,{animation: animation,
-																				 climate: true, datasetFill:true, bezierCurve : false});
+																				 climate: true, datasetFill:true, bezierCurve : false}); 
 						if (value_columns.length == 0 && bool_show_all[type] === false) { legend("climateLegend", json.data); }
 						break;
 					case "bar": 
@@ -61,14 +64,14 @@ $(document).ready(function(){
 						var ctx = $("#stackedBarChartCanvas").get(0).getContext("2d");
 						var myChart = new Chart(lang,ctx).StackedBar(json.data, { animation: animation,
 																				 scaleOverride: true,
-																				 scaleSteps: 10, scaleStepWidth: 10, scaleStartValue: 0});
+																				 scaleSteps: 10, scaleStepWidth: 10, scaleStartValue: 0}); 
 						if (value_columns.length == 0 && bool_show_all[type] === false) { legend("stackedBarLegend", json.data); }
 						break;
 					case "map":
 						$("#map").css("display","block");
 						console.log(json.data);
-						var myMapChart = new MapChart("map").Map(json.data,{
-							color_from: '#00ff00', color_to: '#ff0000'});
+						var myMapChart = new MapChart("map").Map(json.data,{ 
+							color_from: '#00ff00', color_to: '#ff0000'}); 
 					default:
 						// there is no canvas if the type is a map :/ 
 						if (type != "map") {
@@ -110,13 +113,14 @@ $(document).ready(function(){
 			}
 			var data = $("#"+id+"Table").html();
 			$("#"+id+"ChartCanvas").data("columns", []);
-			create_graph(id,data,[],true);
+			create_graph(id,data,[],true);	
 			$('html, body').animate({
 			scrollTop: $("#"+id+"Chart").offset().top
 			}, 500);
 			$("#save_"+id).css("display","block");
 			$("#vis_"+id).html('Show table');
 		} else {
+			$("#rangeSliderDiv").css("display","none");
 			$('html, body').animate({
 				scrollTop: $("#"+id+"Chart").offset().top
 			}, 500);
@@ -125,7 +129,7 @@ $(document).ready(function(){
 			}
 			$("#"+id+"ChartCanvas").css("display","none");	
 			if (id != "map") {
-				$("#"+id+"Legend").css("display","none");
+				$("#"+id+"Legend").css("display","none");	
 			}
 			$("#"+id+"Table").css("display","block");
 			$("#save_"+id).css("display","none");
@@ -151,17 +155,17 @@ $(document).ready(function(){
 		if (del === true) {
 			$("#"+type).html('');
 		}
-
+		
 		if (data.title) {
-			var title = document.createElement('span');
+			var title = document.createElement('span');	
 			title.className = 'tableTitle';
 			parent.append(title);
 			var text = document.createTextNode(htmlDecode(data.title));
 			title.appendChild(text);
 		}
-
-
-
+		
+		
+		
 		if (type == "lineDoubleYLegend" || type == "climateLegend") {
 			for (var i = 1; i <= 2; i++) {
 				var title = document.createElement('span');
@@ -194,7 +198,7 @@ $(document).ready(function(){
 		
 		if (type == "bar" || type == "stackedBar" || type == "line") {
 			var data = $("#"+type+"Table").html();
-
+			
 			var columns = $("#"+type+"ChartCanvas").data("columns");
 			if (!columns) { columns = []; }
 			var posInArray = columns.indexOf(title);
@@ -207,10 +211,10 @@ $(document).ready(function(){
 
 			$("#"+type+"ChartCanvas").data("columns", columns);
 			// false => no animation
-			create_graph(type,data,columns,false);
+			create_graph(type,data,columns,false);	
 			$('html, body').animate({
 			scrollTop: $("#"+type+"Chart").offset().top
-			}, 500);
+			}, 500);				
 
 		}		
 	});

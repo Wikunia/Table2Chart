@@ -12,6 +12,9 @@
 		<script type="text/javascript" src="JS/filesaver.js"></script>
 		<script type="text/javascript" src="JS/canvas-toBlob.js"></script>
 		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+		<script type="text/javascript" src="JS/ion.rangeSlider.min.js"></script>
+		<link rel="stylesheet" href="CSS/ion.rangeSlider.css"/>
+		<link rel="stylesheet" href="CSS/ion.rangeSlider.skinNice.css"/>
 		<link rel="stylesheet" href="CSS/styles.css"/>
 		<link rel="stylesheet" href="CSS/map.css"/>
 	</head>
@@ -60,7 +63,7 @@
 
 		<hr>
 		
-		<article id="climateChart" >
+		<!--<article id="climateChart" >
 			<div class="left"> 
 				<h2>Line double y-axis charts (climate chart)</h2>
 				<p>Tables with a date based column and two value columns with different units are interpreted as line charts.</p><br>
@@ -77,7 +80,7 @@
 				<canvas id="climateChartCanvas" class="chart" width="800" height="400"></canvas>
 				<div id="climateTable" class="table">
 				<?php
-					include('tables/climate.htm');
+					//include('tables/climate.htm');
 				?>
 				</div>
 			</div>
@@ -85,7 +88,7 @@
 			<br><div id="vis_climate" class="button vis_it">Visualize it!</div><div id="save_lineDoubleY" class="button save">Save as png</div><div class="clearleft"></div>
 		</article>
 		
-		<hr>
+		<hr>-->
 		
 		<!--<article id="lineDoubleYChart" >
 			<div class="left"> 
@@ -203,15 +206,18 @@
 			</div>
 			<div class="canvasWrapper">
 				<div id="map" class="chart"></div>
-			
+				<div id="rangeSliderDiv">
+					<input type="text" id="rangeSlider" name="rangeSlider" value="" />
+				</div>
 				<div id="mapTable" class="table">
 				<?php
-					include('tables/WM2010.htm');
+					include('tables/ebola.htm');
 				?>
 				</div>					
 			</div>
 			<div class="clearleft">
 			<br><div id="vis_map" class="button vis_it">Visualize it!</div><div class="clearleft"></div>
+			
 		</article>
 		
 
@@ -220,7 +226,7 @@
 	<footer>
 		A project by <a href="https://github.com/Wikunia">Ole Kröger</a>
 	</footer>
-
+	
 	<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
 	<script src="JS/map.js"></script>
 	</body>

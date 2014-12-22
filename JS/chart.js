@@ -5,7 +5,7 @@
  * Copyright 2013 Nick Downie
  * Released under the MIT license
  * https://github.com/nnnick/Chart.js/blob/master/LICENSE.md
- *
+ * 
  * Additional features:
  * Tooltips by Regaddi https://github.com/nnnick/Chart.js/pull/51
  * My own pulls https://github.com/Wikunia/Chart.js
@@ -356,7 +356,7 @@ window.Chart = function(lang,context, options){
 				}else {
 					var newInnerHTML = '<b><u>'+additionalData[x].label+'</u></b>\
 										<br>'+parseAdditionalData(additionalData[x].values,additionalData[x].tmpl);
-					additionalDataClass[0].innerHTML = newInnerHTML;
+					additionalDataClass[0].innerHTML = newInnerHTML;	
 				}
 			}
 		}
@@ -368,31 +368,31 @@ window.Chart = function(lang,context, options){
 			var resultPart = tmpl;
 			for (j = 0; j < values[i].length; j++) {
 				regexp = new RegExp('%values\\['+j+'\\]%','g');
-				resultPart = resultPart.replace(regexp,values[i][j]);
-			}
+				resultPart = resultPart.replace(regexp,values[i][j]);	
+			}	
 			result += resultPart+'<br>';
 		}
 		return result;
 	}
-
+	
 	var additionalData = [];
 	var lockedAdditionalData = false;
 	var lastFloor = 0;
 	function registerAdditionalData(xPos,j,label,values,tmpl) {
 		lastFloor = Math.round(xPos);
-		additionalData[lastFloor] = {iteration: j, label: label, values: values, tmpl: tmpl};
+		additionalData[lastFloor] = {iteration: j, label: label, values: values, tmpl: tmpl}; 
 	}
-
+	
 	function lockAdditionalData(e) {
 		var position = getPosition(context.canvas),
 			mx = (e.clientX)-position.x;
 		lockedAdditionalData = lockedAdditionalData ? false : true; // toggle
 		if (!lockAdditionalData) {
-			updateAdditionalData(e);
+			updateAdditionalData(e);  
 		}
 	}
-
-
+	
+	
 	 if (is_touch_device()) {
 		context.canvas.ontouchstart = function(e) {
 			e.clientX = e.targetTouches[0].clientX;
@@ -409,7 +409,7 @@ window.Chart = function(lang,context, options){
 			tooltipEventHandler(e);
 		}
 		context.canvas.onclick = function(e) {
-			lockAdditionalData(e);
+			lockAdditionalData(e);	
 		}
 	}
 	
@@ -638,7 +638,7 @@ window.Chart = function(lang,context, options){
 			showTooltips : true,
 			climate: false
 		};		
-
+		
 		var config = $.extend({}, chart.LineDoubleY.defaults, options);
 		
 		return new LineDoubleY(data,config,context);
@@ -707,11 +707,11 @@ window.Chart = function(lang,context, options){
 			AverageStrokeColor: "#000000",
 			logarithmic: false
 		};		
-
-
+		
+		
 		var config = $.extend({}, chart.Bar.defaults, options);
-
-
+		
+		
 		return new Bar(data,config,context);		
 	}
 
@@ -1219,7 +1219,7 @@ window.Chart = function(lang,context, options){
 		var LabelIsDate = true;
 		var monthArray = [];
 		if (data.datasets.length*data.datasets[0].data.length > 100) {
-			config.animation = false;
+			config.animation = false;	
 		}
 		
 		calculateDrawingSizes();
@@ -1282,7 +1282,7 @@ window.Chart = function(lang,context, options){
 		if (config.pointDot == 'fuzzy' && data.labels.length/xAxisLength >= 0.25) {
 			config.pointDot = false;
 		}
-
+	
 		
 		// YYYY in DD.MM.YYYY || MM.YYYY in DD.MM.YYYY
 		if (data.labels[0].toString().match(/^((0?[1-9])|10|11|12)\.(1|2)[0-9]{3}$/)) {
@@ -1297,8 +1297,8 @@ window.Chart = function(lang,context, options){
 				for (var i = 0; i < data.labels.length; i++) {
 					if (data.labels[i].charAt(data.labels[i].length-1) == '.') data.labels[i] = data.labels[i].substr(0,-1);
 					if (currentYear != 2012 && (data.labels[i] == "29.1" || data.labels[i] == "29.01")) {
-						currentYear = 2012;
-						i=0;
+						currentYear = 2012;	
+						i=0; 
 					}
 					data.dateLabels[i] = data.labels[i]+'.'+currentYear;
 				}
@@ -1333,9 +1333,9 @@ window.Chart = function(lang,context, options){
 			var max_dif = max_timestamp-min_timestamp;
 		}
 		
-		animationLoop(config,drawScale,drawLines,ctx);
+		animationLoop(config,drawScale,drawLines,ctx);		
 
-		function drawLines(animPc){
+		function drawLines(animPc){	
 			var cachedXPos = [];
 			var cachedYPos = [];
 			function drawLine() {
@@ -1346,20 +1346,20 @@ window.Chart = function(lang,context, options){
 					else{
 						ctx.lineTo(xPos(j),yPos(i,j));
 					}
-				}
+				}				
 			}
-
+			
 			function tooltipLine() {
 				var showAdditional = false;
 				if (document.getElementsByClassName("additionalData").length > 0) {
-					showAdditional = true;
+					showAdditional = true;	
 				}
 				var pointRadius = config.pointDot ? config.pointDotRadius+config.pointDotStrokeWidth : 10;
 				if(animPc >= 1 && config.showTooltips) {
-					for(var j = 0; j < data.datasets[i].data.length; j++) {
+					for(var j = 0; j < data.datasets[i].data.length; j++) {	
 							// register tooltips
 							if (data.datasets[i].dot) {
-								if (data.datasets[i].dot[j] == true) {
+								if (data.datasets[i].dot[j] == true) { 
 									registerTooltip(ctx,{type:'circle',x:xPos(j),y:yPos(i,j),r:pointRadius},{label:data.labels[j],value:data.datasets[i].data[j]},'Line');
 								}
 							}
@@ -1370,15 +1370,15 @@ window.Chart = function(lang,context, options){
 						}
 				}
 				if (animPc >=1 && showAdditional) {
-					for(var j = 0; j < data.datasets[i].data.length; j++) {
+					for(var j = 0; j < data.datasets[i].data.length; j++) {	
 						if (data.datasets[i].additionalDataTmpl) {
 							var addData = data.datasets[i].additionalData[j] ?  data.datasets[i].additionalData[j] : '';
 							registerAdditionalData(xPos(j),j,data.labels[j],addData,data.datasets[i].additionalDataTmpl);
 						}
-					}
+					}	
 				}
 			}
-
+			
 			for (var i=0; i<data.datasets.length; i++){
 				cachedYPos[i] = [];
 				ctx.strokeStyle = data.datasets[i].strokeColor;
@@ -1422,23 +1422,23 @@ window.Chart = function(lang,context, options){
 			function yPos(dataSet,iteration){
 				if (cachedYPos[dataSet][iteration]) {
 					return cachedYPos[dataSet][iteration];
-				}
-				var result = xAxisPosY - animPc*(calculateOffset(config,data.datasets[dataSet].data[iteration],calculatedScale,scaleHop));
+				} 
+				var result = xAxisPosY - animPc*(calculateOffset(config,data.datasets[dataSet].data[iteration],calculatedScale,scaleHop));	
 				cachedYPos[dataSet][iteration] = result;
 				return result;
 			}
 			function xPos(iteration){
 				if (cachedXPos[iteration]) {
 					return cachedXPos[iteration];
-				}
-
+				} 
+				
 				var result;
 				if (LabelIsDate === true) {
 					if ((iteration != 0) && (iteration != -0.5)) {
 						if (Math.round(iteration) != iteration) { // bezier-curve
-							var myDate=data.dateLabels[iteration+0.5].split(".");
+							var myDate=data.dateLabels[iteration+0.5].split(".");				
 							var timestamp = new Date(myDate[1]+"/"+myDate[0]+"/"+myDate[2]).getTime();
-							var myDate=data.dateLabels[iteration-0.5].split(".");
+							var myDate=data.dateLabels[iteration-0.5].split(".");				
 							var l_timestamp = new Date(myDate[1]+"/"+myDate[0]+"/"+myDate[2]).getTime();
 							var dif_time = (timestamp - l_timestamp);
 						
@@ -1446,9 +1446,9 @@ window.Chart = function(lang,context, options){
 							result = xPos(iteration-1) + abs_x;
 						}
 						else {
-							var myDate=data.dateLabels[iteration].split(".");
+							var myDate=data.dateLabels[iteration].split(".");				
 							var timestamp = new Date(myDate[1]+"/"+myDate[0]+"/"+myDate[2]).getTime();
-							var myDate=data.dateLabels[iteration-1].split(".");
+							var myDate=data.dateLabels[iteration-1].split(".");				
 							var l_timestamp = new Date(myDate[1]+"/"+myDate[0]+"/"+myDate[2]).getTime();
 							var dif_time = timestamp - l_timestamp;
 						
@@ -1463,9 +1463,9 @@ window.Chart = function(lang,context, options){
 					}
 					
 					if (iteration == -0.5) {
-						var myDate=data.dateLabels[0].split(".");
+						var myDate=data.dateLabels[0].split(".");				
 						var timestamp = new Date(myDate[1]+"/"+myDate[0]+"/"+myDate[2]).getTime();
-						var myDate=data.dateLabels[iteration+1.5].split(".");
+						var myDate=data.dateLabels[iteration+1.5].split(".");				
 						var l_timestamp = new Date(myDate[1]+"/"+myDate[0]+"/"+myDate[2]).getTime();
 						var dif_time = (timestamp - l_timestamp);
 					
@@ -1497,20 +1497,20 @@ window.Chart = function(lang,context, options){
 				var count_years = Math.round(max_dif/31540000000); // millisec per year
 				var dis_years;
 				if (count_years == 1) {
-					dis_years = 0;
+					dis_years = 0;		
 				} else 	if (count_years >= 1000) {
 					dis_years = 200;		
 				} else if (count_years >= 500) {
-					dis_years = 100;
+					dis_years = 100;		
 				} else if (count_years >= 100) {
-					dis_years = 20;
+					dis_years = 20;		
 				} else if (count_years >= 50) {
-					dis_years = 10;
+					dis_years = 10;		
 				} else if (count_years >= 10) {
-					dis_years = 2;
+					dis_years = 2;		
 				} else if (count_years >= 2) {
-					dis_years = 1;
-				}
+					dis_years = 1;		
+				} 	
 			}
 			
 			var xLabelDis = 0;
@@ -1521,8 +1521,8 @@ window.Chart = function(lang,context, options){
 				} else var date_part = 2;
 				var start_date = parseInt(data.dateLabels[0].toString().split(".")[date_part]);
 				var end_date = parseInt(data.dateLabels[data.dateLabels.length-1].toString().split(".")[date_part]);
-
-
+				
+			
 				for (var i = start_date; i <= end_date; i++) {
 					if (dis_years == 0) {
 						if (lang == "en") monthArray = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -1688,12 +1688,12 @@ window.Chart = function(lang,context, options){
 			
 			function xLabel(value) {
 				if (isNumber(value)) {
-					return xLabelYear(value);
+					return xLabelYear(value);	
 				}
-
-				return xLabelMonth(monthArray.indexOf(value)+1);
+				
+				return xLabelMonth(monthArray.indexOf(value)+1);	
 			}
-
+			
 			function xLabelYear(year){
 					var year_timestamp = new Date("01/01/"+year).getTime();
 			
@@ -1704,7 +1704,7 @@ window.Chart = function(lang,context, options){
 					var year_timestamp = new Date(mon+"/01/"+currentYear).getTime();
 					return yAxisPosX+((year_timestamp-min_timestamp)/max_dif)*xAxisLength;
 			}
-
+			
 			
 			//Y axis
 			ctx.lineWidth = config.scaleLineWidth;
@@ -2757,9 +2757,9 @@ window.Chart = function(lang,context, options){
 		function animLoop(){
 			//We need to check if the animation is incomplete (less than 1), or complete (1).
 				percentAnimComplete += animFrameAmount;
-
+				
 				animateFrame();	
-
+				
 				//Stop the loop continuing forever
 				if (percentAnimComplete <= 1){
 					requestAnimFrame(animLoop);
@@ -2939,7 +2939,7 @@ window.Chart = function(lang,context, options){
 		}
 		return valueToCap;
 	}
-
+	
 	function getDecimalPlaces (num){
 		var numberOfDecimalPlaces;
 		if (num%1!=0){
@@ -2950,7 +2950,7 @@ window.Chart = function(lang,context, options){
 		}
 
 	} 
-
+	
 	//Javascript micro templating by John Resig - source at http://ejohn.org/blog/javascript-micro-templating/
 	  var cache = {};
 

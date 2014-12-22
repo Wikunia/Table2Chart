@@ -37,7 +37,7 @@ class Color
 	
 	
 	
-	/**
+	/** 
 	* Converts a color in HSV color space into an RGB-representation
 	*
 	* The instrucions on this site were used to implement the algorithm:
@@ -47,7 +47,7 @@ class Color
 	* @param float $saturation in [0,1]
 	* @param float $value in [0,1]
 	* @return rgb array
-	*/
+	*/ 
 	private static function hsv_to_rgb($hue, $saturation, $value){
 		$h = floor($hue/60);
 		$f = $hue/60 - $h;

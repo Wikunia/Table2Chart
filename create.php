@@ -23,7 +23,7 @@ Your entry is saved for the improvement of the service. <br>
 	<canvas id="ChartCanvas" class="chart" width="800" height="400"></canvas>
 	<div id="map"></div>
 </div>
-<br>
+<br> 
 <div id="Legend" class="legend">
 					
 </div>

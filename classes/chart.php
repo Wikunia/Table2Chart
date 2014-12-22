@@ -33,18 +33,17 @@ class chart extends table2array {
 		private $nut_label_columns;
 	
 	/**
-	 * get all arrays of the table2array class
+	 * get all arrays of the table2array class	
 	 * @param string $table html table
 	 * @param string $lang (de|en)
 	*/
 	function __construct($table,$lang) {
-
 		$this->get_countries();
 		$this->get_array($table,$lang);
 	}
 		
 		
-	function create_graph($table,$lang) {
+	function create_graph() {
 		
 		
 		if ($this->row_count-1 <= 0) {
@@ -67,9 +66,9 @@ class chart extends table2array {
 					$this->value_columns[] = $this->column_titles[$i];
 				}
 				if ($c_column_struct == table2array::TYPE_RANK) {
-					$this->rank_columns[] = $this->column_titles[$i];
+					$this->rank_columns[] = $this->column_titles[$i];	
 				}
-
+				
 				// label
 				$labels_types = [table2array::TYPE_STRING,table2array::TYPE_YEAR,table2array::TYPE_DATE,table2array::TYPE_MONTH,table2array::TYPE_COUNTRY];
 				if (in_array($c_column_struct,$labels_types)) { 
@@ -112,25 +111,25 @@ class chart extends table2array {
 				if (round($checksum,2) == 100) { // pie chart
 					$graph["type"] = "pie";
 					$graph["label"] = $this->label_columns[0];
-					$graph["values"][] = $this->value_columns[0];
+					$graph["values"][] = $this->value_columns[0]; 
 				}
 				else {
 					$graph = $this->line_or_bar();
 				}
 			}
 			else { // no percentage
-				if (count($this->rank_columns) > 0) {
+				if (count($this->rank_columns) > 0) { 
 					$graph["type"] = "bar";
 					$graph["val_type"] = table2array::TYPE_NUMBER;
 					$graph["label"] = $this->label_columns[0];
 					$value_columns = $this->value_columns;
 					$value_columns[] = $this->rank_columns[0];
-					$graph["values"] = $value_columns;
+					$graph["values"] = $value_columns; 
 				} else if ($this->column_structure[$this->label_columns[0]] == table2array::TYPE_COUNTRY) { //country column
 					$graph["type"] = "map";
 					$graph["val_type"] = table2array::TYPE_NUMBER;
 					$graph["label"] = $this->label_columns[0];
-					$graph["values"] = array($this->value_columns[0]);
+					$graph["values"] = array($this->value_columns[0]); 
 				} else {
 					$graph = $this->line_or_bar();
 				}
@@ -141,7 +140,7 @@ class chart extends table2array {
 					$graph["type"] = "map";
 					$graph["val_type"] = table2array::TYPE_NUMBER;
 					$graph["label"] = $this->label_columns[0];
-					$graph["values"] = $this->value_columns;
+					$graph["values"] = $this->value_columns; 
 			} else {
 			// line or bar
 			// check if each column is percentage or a normal number
@@ -296,10 +295,10 @@ class chart extends table2array {
 					$graph["val_type"] = table2array::TYPE_STRING;
 					if ($this->column_structure[$this->label_columns[0]] == table2array::TYPE_COUNTRY) {
 						$graph["label"] = $this->label_columns[0];
-						$graph["values"] = $this->label_columns[1];
+						$graph["values"] = $this->label_columns[1]; 
 					} else {
 						$graph["label"] = $this->label_columns[1];
-						$graph["values"] = $this->label_columns[0];
+						$graph["values"] = $this->label_columns[0]; 
 					}
 					
 					
@@ -309,33 +308,34 @@ class chart extends table2array {
 		}
 	}	
 		
-		
-		$graph["value_names"] = $graph["values"];
-		
+		if (!empty($graph)) {
+			$graph["value_names"] = $graph["values"];
 
-		
-		switch($graph["type"]) {
-			case "line": 
-				return array('line',$this->create_json_line($graph["label"],$graph["values"],$graph["value_names"]));
-				break;
-			case "pie":
-				return array('pie',$this->create_json_pie($graph["label"],$graph["values"])); // value can't be an array
-				break;
-			case "bar":
-				return array('bar',$this->create_json_bar($graph["label"],$graph["values"],$graph["value_names"],$graph["special"]));
-				break;
-			case "stackedbar":
-				return array('stackedbar',$this->create_json_stackedbar($graph["label"],$graph["values"],$graph["label_value"]));
-				break;
-			case "climate":
-				return array('climate',$this->create_json_lineDoubleY($graph["label"],$graph["values"]));
-				break;
-			case "lineDoubleY":
-				return array('lineDoubleY',$this->create_json_lineDoubleY($graph["label"],$graph["values"]));
-				break;
-			case "map":
-				return array('map',$this->create_json_map($graph["label"],$graph["values"],$graph["val_type"]));
-				break;
+			switch($graph["type"]) {
+				case "line": 
+					return array('line',$this->create_json_line($graph["label"],$graph["values"],$graph["value_names"])); 
+					break;
+				case "pie":
+					return array('pie',$this->create_json_pie($graph["label"],$graph["values"])); // value can't be an array
+					break;
+				case "bar":
+					return array('bar',$this->create_json_bar($graph["label"],$graph["values"],$graph["value_names"],$graph["special"])); 
+					break;
+				case "stackedbar":
+					return array('stackedbar',$this->create_json_stackedbar($graph["label"],$graph["values"],$graph["label_value"])); 
+					break;
+				case "climate":
+					return array('climate',$this->create_json_lineDoubleY($graph["label"],$graph["values"])); 
+					break;
+				case "lineDoubleY":
+					return array('lineDoubleY',$this->create_json_lineDoubleY($graph["label"],$graph["values"])); 
+					break;
+				case "map":
+					return array('map',$this->create_json_map($graph["label"],$graph["values"],$graph["val_type"])); 
+					break;
+			}
+		} else {
+			return array('none',array());
 		}
 	}
 		
@@ -384,7 +384,7 @@ class chart extends table2array {
 		// bar
 		$graph["type"] = "bar";
 		$graph["label"] = $this->label_columns[0];
-		$graph["values"] = $this->value_columns;
+		$graph["values"] = $this->value_columns;		
 		return $graph;
 	}
 		
@@ -404,7 +404,7 @@ class chart extends table2array {
 	
 	
 		
-	// sum of values
+	
 	function add_value_sum($label,$values) {
 		$unique_label = array();
 		$unique_values = array();
@@ -507,7 +507,7 @@ class chart extends table2array {
 						if ($rank_column !== false) {
 							list($labels,$datasets) = $this->sort_array($labels,$datasets,$values,$rank_column);
 						}
-					}
+					}					
 				}
 				break;
 		}
@@ -607,13 +607,10 @@ class chart extends table2array {
 	}
 	
 	function create_json_map($label_col,$value_cols,$val_type) {
-	
-	
-	
 		$labels = array();
-			for ($i = 0; $i < $this->row_count-1; $i++) {
-				$labels[] = $this->row_array[$i][$label_col];
-			}
+		for ($i = 0; $i < $this->row_count-1; $i++) {
+			$labels[] = $this->row_array[$i][$label_col];
+		}
 		$values = array();
 		if ($val_type == table2array::TYPE_NUMBER) {
 			for ($j = 0; $j < count($value_cols); $j++) {
@@ -652,7 +649,7 @@ class chart extends table2array {
 	
 	/** ******************************************************************* */
 	
-
+	
 	function sort_array($labels,$datasets,$values,$datasetNr=0) {
 		$array = array();
 		for ($i = 0; $i < count($labels); $i++) {
@@ -679,18 +676,20 @@ class chart extends table2array {
 		for ($i = 0; $i < $this->col_count; $i++) {
 			if ($this->column_structure[$this->column_titles[$i]] == table2array::TYPE_DATE) {
 				for ($j = 0; $j < $this->row_count-1; $j++) {
-					if ($this->lang == "de") {preg_match('#^\d{1,2}\.[ ]?(Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember|((0?[1-9])|10|11|12)\.)( ?[1-2]\d{3})?$#',
-														 $this->row_array[$j][$this->column_titles[$i]], $matches);}
-					if ($this->lang == "en") {preg_match('#^\d{1,2}( January| February| March| April| May| June| July| August| September| October| November| December|\.((0?[1-9])|10|11|12)\.)( ?[1-2]\d{3})?$#',$this->row_array[$j][$this->column_titles[$i]], $matches);}
+					if ($this->lang == "de") {preg_match(table2array::DATE_RX_DE,$this->row_array[$j][$this->column_titles[$i]], $matches);}
+					if ($this->lang == "en") {preg_match(table2array::DATE_RX_EN,$this->row_array[$j][$this->column_titles[$i]], $matches);}
 					if ($matches) {
 						$new_date = $this->row_array[$j][$this->column_titles[$i]];
 						for ($m = 0; $m < 12; $m++) {
+							// change January to 1
 							$new_date = str_replace($this->month[12+$m],$m+1,$new_date);
+							// change Jan to 1
+							$new_date = str_replace($this->month[$m],$m+1,$new_date);
 						}
 						$new_date = str_replace(' ','.',$new_date);
 						$this->row_array[$j][$this->column_titles[$i]] = str_replace('..','.',$new_date);
 					}
-
+					
 				}
 			}
 		}	
