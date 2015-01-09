@@ -11,7 +11,12 @@
 	$chart = new chart($table,$lang);
 	list($type,$data) = $chart->create_graph();
 
-
+	echo 'Row length<br>';
+	print_r($chart->row_count);
+	echo '<br><br>';
+	echo 'Col length<br>';
+	print_r($chart->col_count);
+	echo '<br><br>';
 	echo 'Array_structure<br>';
 	print_r($chart->array_structure);
 	echo '<br><br>';

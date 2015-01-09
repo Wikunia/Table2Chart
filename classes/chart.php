@@ -38,6 +38,7 @@ class chart extends table2array {
 	 * @param string $lang (de|en)
 	*/
 	function __construct($table,$lang) {
+		date_default_timezone_set('Europe/Berlin');
 		$this->get_countries();
 		$this->get_array($table,$lang);
 	}
@@ -319,6 +320,9 @@ class chart extends table2array {
 					return array('pie',$this->create_json_pie($graph["label"],$graph["values"])); // value can't be an array
 					break;
 				case "bar":
+					if (!isset($graph["special"])) {
+						$graph["special"] = "";
+					}
 					return array('bar',$this->create_json_bar($graph["label"],$graph["values"],$graph["value_names"],$graph["special"])); 
 					break;
 				case "stackedbar":

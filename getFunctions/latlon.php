@@ -4,9 +4,8 @@
 	
 	$db = new MyDB("../Countries.db");
 
-	$cc = SQLite3::escapeString($_GET['country_code']);
 	$c = SQLite3::escapeString($_GET['country']);
-	
+
 	$result = $db->query("select country_code from CountryRedirect where country = '$c' limit 1") or die('Query failed 1');
 	while (list($iso3) = $result->fetchArray())
 	{
