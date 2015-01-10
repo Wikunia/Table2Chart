@@ -23,14 +23,14 @@
 	
 class chart extends table2array {		
 		
-		public $console;
-	
-		private $json;
-		
-		private $value_columns;
-		private $label_columns;
-		private $rank_columns;
-		private $nut_label_columns;
+	public $console;
+
+	private $json;
+
+	private $value_columns;
+	private $label_columns;
+	private $rank_columns;
+	private $nut_label_columns;
 	
 	/**
 	 * get all arrays of the table2array class	
@@ -92,7 +92,6 @@ class chart extends table2array {
 				}
 			}
 			if ($sumall === true) {
-				echo "delete last row<br><br>";
 				array_pop($this->row_array); // delete last row
 				$this->row_count = $this->row_count-1;
 			}
