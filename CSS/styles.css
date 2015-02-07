@@ -34,6 +34,7 @@ th, td {
 
 .table {
 	max-height: 400px;
+	max-width: 800px;
 	overflow: auto;
 }
 .canvasWrapper {
@@ -77,6 +78,9 @@ th, td {
 		font-size: 1.1em;
 	}
 	
+#rangeSliderDiv {
+	display: none;
+}
 
 .chart {
 	display:none;
