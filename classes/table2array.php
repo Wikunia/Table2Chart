@@ -66,7 +66,7 @@
 		const TYPE_MONTH 		= 8;
 		const TYPE_COUNTRY 		= 9;
 		const TYPE_EMPTY 		= 10;
-		const DATE_RX_DE 	= '#^\d{1,2}\.[ ]?(Jan(?:uar)?|Feb(?:ruar)?|März?|Apr(?:il)?|Mai|Juni?|Juli?|Aug(?:ust)?|Sep(?:tember)?|Okt(?:ober)?|Nov(?:ember)?|Dez(?:ember)?|((0?[1-9])|10|11|12))( ?\.[1-2]\d{3})?$#';
+		const DATE_RX_DE 		= '#^\d{1,2}\.[ ]?(Jan(?:uar)?|Feb(?:ruar)?|März?|Apr(?:il)?|Mai|Juni?|Juli?|Aug(?:ust)?|Sep(?:tember)?|Okt(?:ober)?|Nov(?:ember)?|Dez(?:ember)?|((0?[1-9])|10|11|12))( ?\.[1-2]\d{3})?$#';
 		const DATE_RX_EN		= '#^\d{1,2}( Jan(?:uary)?| Feb(?:ruary)?| Mar(?:ch)?| Apr(?:il)?| May| June?| July?| Aug(?:ust)?| Sep(?:tember)?| Oct(?:ober)?| Nov(?:ember)?| Dec(?:ember)?|\.((0?[1-9])|10|11|12))( ?\.[1-2]\d{3})?$#';
 
 		
