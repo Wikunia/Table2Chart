@@ -2,23 +2,21 @@
 	require_once("../classes/sqlite.php");
 
 	
-	$db = new MyDB();
+	$db = new MyDB("../Countries.db");
 
 	$array = array();
 
-	$result = $db->query("select country_code from Countries") or die('Select Query failed 1');
-	while (list($iso3) = $result->fetchArray())
+	$result = $db->query("select country_code,country from CountryRedirect") or die('Select Query failed 1');
+	while (list($iso3,$country) = $result->fetchArray())
 	{
-		$countries = array();
-		$red_result = $db->query("select country from CountryRedirect where country_code = '$iso3'") or die('Select Query failed 2');
-		while (list($red_country) = $red_result->fetchArray())
-		{
-			$countries[] = $red_country;
+		if (array_key_exists($iso3,$array)) {
+			$array[$iso3][] = $country;	
+		} else {
+			$array[$iso3] = array($country);
 		}
-		$array[] = array('iso3'=>$iso3,'country'=>$countries);
 	}
 	
 	echo json_encode($array);
-
+ 
 
 ?>
